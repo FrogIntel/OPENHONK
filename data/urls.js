@@ -153,7 +153,6 @@ export const appData = {
         { title: 'Lucky Patcher', url: 'https://luckypatchers.com' },
         { title: 'OSINT Framework', url: 'https://osintframework.com' },
         { title: 'PRISM Break', url: 'https://prism-break.org/en' },
-        { title: 'Piracy Index', url: 'https://piracy.vercel.app/' },
         { title: 'Privacy Guides', url: 'https://www.privacyguides.org/' },
         { title: 'Privacy Tools', url: 'https://www.privacytools.io/' },
         { title: 'Reclaim The Net', url: 'https://reclaimthenet.org/' },
