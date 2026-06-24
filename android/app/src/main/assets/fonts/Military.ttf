@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <script>
+      (function(){
+          setTimeout(function(){
+              window.location.reload();
+          }, 5000);
+      }())
+  </script>
+  <link rel="icon" href="data:,">
+  <title>One moment, please...</title>
+  <style>
+.spinner {
+    -webkit-animation: spin 1s ease-out;
+    animation: spin 1s ease-out;
+}
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+#outer-container {
+    text-align: center;
+}
+#container {
+        display: inline-block;
+        height: 100px;
+    }
+#text {
+    float: left;
+    height: 100px;
+    line-height: 100px;
+    font-size: 3rem;
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    padding: 0 .4em 0 .2em;
+    letter-spacing: 0.06em;
+    color: rgba(38, 122, 72, 0.86);
+}
+@media (min-height: 180px) {
+    #outer-container {
+        margin-top: 0;
+    }
+}
+@media (min-height: 360px) {
+    #outer-container {
+        margin-top: 5%;
+    }
+}
+@media (min-height: 540px) {
+    #outer-container {
+        margin-top: 10%;
+    }
+}
+@media (min-height: 720px) {
+    #outer-container {
+        margin-top: 20%;
+    }
+}
+@media (min-width: 1450px) {
+    .throbber {
+        width: 90px;
+        height: 90px;
+        float: left;
+        padding: 5px 0 5px 5px;
+        opacity: 0.86;
+    }
+    #container {
+        display: inline-block;
+        border: 3px solid rgb(38, 122, 72, 0.86);
+        border-radius: 51px;
+        height: 100px;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <div id="outer-container">
+    <div id="container">
+<div class="throbber">
+    <svg class="spinner" width="90px" height="90px" viewBox="0 0 47 47"
+         version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+        <title>Loader</title>
+        <defs>
+            <polygon id="path-1"
+                     points="0 0.375484146 0 15.7255695 15.7013244 15.7255695 15.7013244 0.375484146 0 0.375484146"></polygon>
+        </defs>
+        <g id="Page-1" stroke="none" stroke-width="1" fill="none"
+           fill-rule="evenodd">
+            <g id="Logo" transform="translate(-5.000000, -2.000000)">
+                <g id="Group-2" transform="translate(5.000000, 2.000000)">
+                    <path d="M22.6150244,4.52988293 C23.1538049,3.06256585 23.6031707,1.59582195 24.231939,0.158882927 C25.1902805,2.22459024 25.8190488,4.43989512 26.7768171,6.47579756 C29.1417195,7.40376098 31.7164024,7.7929439 34.1116829,8.69110244 C28.9623171,11.2663585 23.7229634,13.7510537 18.4836098,16.176139 C19.7709512,12.2545049 21.2382683,8.4217122 22.6150244,4.52988293 L22.6150244,4.52988293 Z"
+                          id="Fill-1" fill="#467C45"></path>
+                    <path d="M13.7718598,8.94461585 C16.1424939,7.68077439 18.4500793,6.28968902 20.8207134,5.02527439 C18.9240915,10.8412378 16.7747012,16.5614817 14.8465549,22.3774451 C12.7292622,18.3950549 10.895689,14.2544695 8.9044939,10.2090305 C8.27228659,8.85004268 7.5455061,7.55353049 7.00844512,6.16359146 C9.31545732,6.95342073 11.4648476,8.24935976 13.7718598,8.94461585"
+                          id="Fill-3" fill="#467C45"></path>
+                    <path d="M24.2134256,15.0745049 C29.4602305,12.4969561 34.7379866,9.91940732 40.0157427,7.4031878 C39.1565598,9.61276098 38.1747183,11.7300537 37.2232549,13.9086756 C38.4504134,16.2099561 39.9544134,18.388578 41.0898646,20.7511878 C35.4435598,18.9405415 29.8287793,17.0381878 24.2134256,15.0745049"
+                          id="Fill-5" fill="#467C45"></path>
+                    <g id="Group-9"
+                       transform="translate(0.000000, 11.919659)">
+                        <mask id="mask-2" fill="white">
+                            <use xlink:href="#path-1"></use>
+                        </mask>
+                        <g id="Clip-8"></g>
+                        <path d="M8.34869024,0.375484146 C9.93064146,3.33419146 11.2781659,6.43963049 12.7426171,9.45622805 C13.7387878,11.5362646 14.793422,13.5876427 15.7013244,15.7255695 C10.4579585,13.9091915 5.21401951,12.03435 -0.000114634146,10.0718134 C2.05069024,9.1341061 4.21842195,8.4898622 6.29845854,7.61119146 C6.97193415,5.17980122 7.67521463,2.77706951 8.34869024,0.375484146"
+                              id="Fill-7" fill="#467C45"
+                              mask="url(#mask-2)"></path>
+                    </g>
+                    <path d="M29.1793195,18.0496049 C33.5600634,19.4670561 37.9081366,21.0776659 42.2888805,22.5593122 C43.6742341,23.0745927 45.1558805,23.4609098 46.5085634,24.1372512 C44.2216122,25.039422 41.9025634,25.9100683 39.6477098,26.8110927 C38.8103073,29.4195927 38.2302585,32.1261049 37.3607585,34.7346049 C35.5890878,31.4497634 34.0432463,28.0353854 32.3684415,24.6852024 C31.3052098,22.4945439 30.1456854,20.3044585 29.1793195,18.0496049"
+                          id="Fill-10" fill="#467C45"></path>
+                    <path d="M28.9972232,29.3489207 C29.5789915,27.69475 30.0684793,26.0113476 30.7419549,24.3887012 C31.538089,25.7660305 32.1811866,27.2356402 32.9154183,28.6444939 C34.7220524,32.4709817 36.68115,36.205189 38.4568329,40.0316768 C36.2827963,39.1449817 34.1402841,38.1654329 31.9364427,37.2460671 C29.6403207,38.4709329 27.4662841,39.9405427 25.1094061,41.1035061 C26.3033207,37.1549329 27.7419793,33.2671159 28.9972232,29.3489207"
+                          id="Fill-12" fill="#467C45"></path>
+                    <path d="M4.97133902,25.64555 C9.93385122,27.1873793 14.7737049,29.036428 19.6748878,30.6705378 C20.4148512,30.9170012 21.1542415,31.1944159 21.8328756,31.5337329 C16.5304732,33.9685622 11.3214976,36.6498549 5.95776585,38.99355 C6.82096098,36.8355622 7.89966829,34.7698549 8.7319122,32.581489 C7.68358293,30.1764646 6.11194878,28.01905 4.97133902,25.64555"
+                          id="Fill-14" fill="#467C45"></path>
+                    <path d="M15.4549183,35.8770488 C19.4671134,33.9317073 23.4483573,31.8952317 27.4915037,30.0433171 C26.4110768,33.6542927 25.0222841,37.203939 23.8186256,40.8143415 C23.1090402,42.7275854 22.5530646,44.7033049 21.7511988,46.5855976 C20.7630524,44.4866463 20.0534671,42.2650366 19.1277963,40.1351341 C16.6276256,39.2094634 14.0042232,38.684439 11.4736744,37.9748537 C12.6773329,37.0801341 14.1584061,36.586061 15.4549183,35.8770488"
+                          id="Fill-16" fill="#467C45"></path>
+                </g>
+            </g>
+        </g>
+    </svg>
+</div>
+      <div id="text">
+        Please wait while your request is being verified...
+      </div>
+    </div>
+  </div>
+  <div id="ob3t3qdnwspz"></div>
+  <script>
+(function(s,a){var a0B={s:0x19f,a:0x1bb,x:0x1be,f:0x1bf,w:0x1ae,i:0x1c1,K:0x19c,E:0x1a7},M=a0f,x=s();while(!![]){try{var f=parseInt(M(0x18d))/0x1*(-parseInt(M(a0B.s))/0x2)+-parseInt(M(a0B.a))/0x3+-parseInt(M(a0B.x))/0x4*(-parseInt(M(0x1b6))/0x5)+-parseInt(M(0x1a4))/0x6+-parseInt(M(a0B.f))/0x7+parseInt(M(a0B.w))/0x8*(parseInt(M(a0B.i))/0x9)+-parseInt(M(a0B.K))/0xa*(-parseInt(M(a0B.E))/0xb);if(f===a)break;else x['push'](x['shift']());}catch(w){x['push'](x['shift']());}}}(a0x,0x3cc67));var a0w=window['navigator'],a0i={'webdriverCheck':function(){var b=a0f;return'webdriver'in window||!!a0w[b(0x1b2)];},'userAgentCheck':function(){var a0o={s:0x19b},h=a0f;return/headless|bytespider/i['test'](a0w[h(a0o.s)]);},'appVersionCheck':function(){var a0Q={s:0x1c3},C=a0f;return/headless/i[C(0x1b5)](a0w[C(a0Q.s)]);},'pluginArraySpoofing':function(){var a0p={s:0x1b0,a:0x1af,x:0x1b1},H=a0f;let s=PluginArray[H(0x1af)]===a0w[H(a0p.s)]['__proto__'];if(a0w[H(a0p.s)]['length']>0x0)s&=Plugin[H(a0p.a)]===a0w[H(0x1b0)][0x0][H(a0p.x)];return!s;},'mimeTypeArraySpoofing':function(){var a0G={s:0x1c5,a:0x1af,x:0x1b1},W=a0f;let s=MimeTypeArray['prototype']===a0w[W(a0G.s)][W(0x1b1)];if(a0w[W(0x1c5)][W(0x18e)]>0x0)s&=MimeType[W(a0G.a)]===a0w[W(a0G.s)][0x0][W(a0G.x)];return!s;},'noLanguage':function(){var a0X={s:0x1bd},z=a0f;return!a0w[z(0x1a2)]||a0w[z(a0X.s)]['length']===0x0;},'zeroOuterDimensions':function(){var a0j={s:0x1a9,a:0x199},u=a0f;return window[u(a0j.s)+'t']===0x0&&window[u(a0j.a)]===0x0;}},a0K=function(x,f){var a0v={s:0x1ab,a:0x194,x:0x19d},a0V={s:0x1a1,a:0x1b9,x:0x192},Y=a0f,w=(function(){var a0r={s:0x1a5},K=!![];return function(E,n){var Z=K?function(){var F=a0f;if(n){var m=n[F(a0r.s)](E,arguments);return n=null,m;}}:function(){};return K=![],Z;};}()),i=w(this,function(){var I=a0f;return i['toString']()[I(0x192)](I(0x1a0)+'+$')[I(a0V.s)]()[I(a0V.a)+'r'](i)[I(a0V.x)]('(((.+)+)+)'+'+$');});i(),window[Y(a0v.s)+'stener']?window[Y(0x1b4)][Y(a0v.s)+Y(a0v.a)](Y(0x1a8)+'Loaded',x,f):window['document']['attachEven'+'t'](Y(0x1b3)+Y(a0v.x),x);};function a0f(s,a){var x=a0x();return a0f=function(f,w){f=f-0x18d;var i=x[f];return i;},a0f(s,a);}a0K(function(){var a0S={s:0x1ac,a:0x19a,x:0x1bc,f:0x1b4,w:0x19a,i:0x193,K:0x1b4,E:0x1b7,n:0x196,Z:0x190,m:0x195,L:0x1a3,e:0x1a3,d:0x1aa,A:0x1a1,N:0x1c7,T:0x1aa,R:0x1a6,t:0x1a6,O:0x198,B:0x1b8,y:0x1a6,o:0x1ca,Q:0x1cb};setTimeout(function(){var g=a0f,s=window[g(0x1b4)][g(a0S.s)+g(0x191)]('ob3t3qdnwspz'),a=+((+!+[]+!![]+!![])+(+!+[]+!![]+!![]+!![]+!![]+!![]+[])+(+!+[]+!![]+!![])+(+![]+[])+(+!+[]+!![]+!![]+!![]+!![]+!![])+(+!+[]+!![]+!![]+!![]+[])+(+!+[]+!![]+!![]+!![]+!![]+!![]+!![])),x=window['document'][g(0x1b7)+g(a0S.a)](g(a0S.x)),f=window[g(a0S.f)][g(0x1b7)+g(a0S.w)]('input'),w=window[g(0x1b4)][g(0x1b7)+'ent'](g(a0S.i)),i=window[g(a0S.K)][g(0x1b7)+'ent'](g(0x193)),K=window[g(0x1b4)][g(a0S.E)+g(a0S.w)](g(a0S.i)),E=+((+!+[]+!![]+!![])+(+!+[]+!![]+[])+(+!+[]+!![])+(+!+[]+!![]+!![]+[])+(+!+[]+!![]+!![]+!![]+!![]+!![]+!![]+!![])+(+!+[]+!![]+!![]+!![]+!![]+!![]+[])+(+!+[])),n='wsidchk',Z='pdata',m='https%3A%2F%2Fufonts.com%2Ffonts%2Fmilitary-regular-28593.html',L='/z0f76a1d14fd21a8fb5fd0d03e0fdc3d3cedae52f',e='failedChecks',d=Object[g(a0S.n)](a0i)[g(0x197)](([R,t])=>{try{return t()?R:null;}catch(O){return null;}})[g(a0S.Z)](R=>R!==null),A=d[g(0x18e)]>0x0;if(A){var N=new URLSearchParams();N[g(0x1a3)]('id',g(0x1c4)+g(a0S.m)+'0950635027'+'9e'),N[g(a0S.L)]('ts','1781785515'),N['append'](n,a+E),N[g(a0S.e)](Z,m),d['forEach'](R=>N[g(0x1a3)](e,R));var T=new XMLHttpRequest();T[g(0x1c2)](g(a0S.d),L+'?'+N[g(a0S.A)]()),T[g(0x1c9)](null);}else x['id']='ob3t3qdnwspz',x[g(0x1ad)]=g(0x18f)+g(0x1c0),x[g(a0S.N)]=g(a0S.T),x[g(0x1ba)]=L,f['id']='fei1vu274q3j',f['name']=n,f['value']=a+E,f['type']='hidden',i[g(a0S.R)]='id',i[g(0x198)]='7fa3b767c4'+g(0x1c6)+g(0x19e)+'c7',i[g(0x1b8)]='hidden',K[g(a0S.t)]='ts',K[g(a0S.O)]='1781785515',K[g(a0S.B)]='hidden',w['id']='tv4t6yjd7mci',w[g(a0S.y)]=Z,w[g(0x198)]=m,w['type']=g(a0S.o),x['appendChil'+'d'](f),x[g(a0S.Q)+'d'](w),x[g(0x1cb)+'d'](i),x[g(0x1cb)+'d'](K),s[g(0x1cb)+'d'](x),x[g(0x1c8)]();},0x3e8);},![]);function a0x(){var D=['DOMContent','outerHeigh','GET','addEventLi','getElement','style','16NqJLsj','prototype','plugins','__proto__','webdriver','onreadysta','document','test','711645jpVXBm','createElem','type','constructo','action','643179durIHR','form','languages','4RXLWwt','2717085sUYRhr','ne;','258408ljAJur','open','appVersion','a6105c0a61','mimeTypes','60b54a2be4','method','submit','send','hidden','appendChil','163pHSAiz','length','display:no','filter','ById','search','input','stener','1b41b08f12','entries','map','value','outerWidth','ent','userAgent','70GacHbR','techange','d49030b349','4506CXLKkY','(((.+)+)+)','toString','language','append','119112MAybAS','apply','name','1632433FYKAMd'];a0x=function(){return D;};return a0x();}
+  </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"01b157229983469e93a4f31618a27240","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

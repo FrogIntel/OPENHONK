@@ -1,0 +1,84 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+
+# Android build artifacts
+android/app/.cxx/
+android/.gradle/
+android/build/
+android/app/build/
+r-build/
+
+# APKs and tools
+*.apk
+apktool.bat
+apktool.jar
+jdk-17.0.12+7/
+jdk-17.zip
+aapt_output.txt
+
+# Decompiled/extracted APKs
+apk_extract/
+apk_extract2/
+apk_extract_oh/
+apk_extract_v1/
+old_apk_decompiled/
+old_apk_extracted/
+freelz_decompiled/
+freelz_extracted/
+old_reebitt.apk
+FReelzGallery.apk
+OPENHONK-release.apk
+
+# Temp
+tmp/
+
+# Claude/AI config
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# Release keystore
+android/app/release.keystore
+android/app/debug.keystore
+android/local.properties
+
+# Docs (internal only)
+docs/
