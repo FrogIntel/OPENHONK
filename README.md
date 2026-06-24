@@ -211,6 +211,7 @@ Followed by the head dev for many years who witnessed the shadowbanning of this 
 - Jotform
 - Nicepage
 - AppCreator24
+- Devin AI
 
 **Countries that assisted development:**
 UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australia · France · Germany · India · Russia
