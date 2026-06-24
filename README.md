@@ -17,7 +17,7 @@
 📕 Unleash the Truth 📗 Fuck the Gatekeepers 🔥
 </p>
 
-Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android weapon to shred the mainstream narrative and unearth the raw, unfiltered truth. Born from the ashes of Frog Intel, this app was banned by Google's thought police for daring to expose what they don't want you to know—COVID lies, election scams, and the deep-state's dirty secrets. Now, it's back, fiercer than ever, and it's **free**. No corporate overlords. No donations. Just pure, out-of-pocket rebellion.
+Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Source Android weapon to shred the mainstream narrative and unearth the raw, unfiltered truth. Born from the ashes of Frog Intel, this app was banned by Google's thought police for daring to expose what they don't want you to know—COVID lies, election scams, and the deep-state's dirty secrets. Now, it's back, fiercer than ever, and it's **free**. No corporate overlords. No donations. Just pure, out-of-pocket rebellion.
 
 <div align="center">
 
