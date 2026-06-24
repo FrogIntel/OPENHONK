@@ -103,7 +103,7 @@ const CategoryScreen = ({ route, navigation }) => {
     try {
       await Share.open({
         title: 'Hey Frens! Check This!',
-        message: `Hey check out this app if you can. It deserves your attention! Banned from Google Play Store!\n\nIt's a Truther app for Android, Tablets and Chromebooks.\n\nGreat Red Pills!\n\nDownload Now:\n➡ https://github.com/FrogIntel/OPENHONK/releases\n\n🐸 OPENHONK by Frog Intel\n👉 https://t.me/s/frogintel\n👉 https://github.com/FrogIntel`,
+        message: `Hey check out this app if you can. It deserves your attention! Banned from Google Play Store!\n\nIt's a Truther app for Android, Tablets and Chromebooks.\n\nGreat Red Pills!\n\nDownload Now:\n➡ https://github.com/FrogIntel/OPENHONK/releases\n\n🐸 OPENHONK by Frog Intel\n👉 https://t.me/s/openhonk\n👉 https://github.com/FrogIntel`,
         url: 'https://github.com/FrogIntel/OPENHONK/releases',
       });
     } catch (error) {

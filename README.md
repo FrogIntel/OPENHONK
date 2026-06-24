@@ -4,9 +4,9 @@
 
 ### Rip Through the Veil of Lies
 
-<img src="https://raw.githubusercontent.com/FrogIntel/REEBITT/main/assets/favicon.png" width="120" alt="OPENHONK Logo" />
+<img src="https://raw.githubusercontent.com/FrogIntel/OPENHONK/main/assets/favicon.png" width="120" alt="OPENHONK Logo" />
 
-[![GitHub release](https://img.shields.io/github/v/release/FrogIntel/REEBITT?style=for-the-badge&color=ffcc33&label=DOWNLOAD)](https://github.com/FrogIntel/REEBITT/releases)
+[![GitHub release](https://img.shields.io/github/v/release/FrogIntel/OPENHONK?style=for-the-badge&color=ffcc33&label=DOWNLOAD)](https://github.com/FrogIntel/OPENHONK/releases)
 [![Profile Views](https://komarev.com/ghpvc/?username=FrogIntel&style=for-the-badge&color=ffcc33&label=VIEWS)](https://github.com/FrogIntel)
 
 </div>
@@ -19,16 +19,17 @@
 
 Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android weapon to shred the mainstream narrative and unearth the raw, unfiltered truth. Born from the ashes of Frog Intel, this app was banned by Google's thought police for daring to expose what they don't want you to know—COVID lies, election scams, and the deep-state's dirty secrets. Now, it's back, fiercer than ever, and it's **free**. No corporate overlords. No donations. Just pure, out-of-pocket rebellion.
 
+<div align="center">
+
+<img src="assets/screenshots/Screenshot_20260624-000842.png" width="270" alt="OPENHONK Home Screen" />
+
+</div>
+
 ---
 
 ## 📥 Download Now!
 
-> **Updated June 2025: latest download links below**
-
-| Build | Link |
-|-------|------|
-| 🔴 **RED_CASTLE** (Dark Theme) | [Download APK](https://github.com/FrogIntel/REEBITT/releases) |
-| 🟢 **GREEN_CASTLE** (Light Theme) | [Download APK](https://github.com/FrogIntel/REEBITT/releases) |
+[![GitHub release](https://img.shields.io/github/v/release/FrogIntel/OPENHONK?style=for-the-badge&color=ffcc33&label=DOWNLOAD)](https://github.com/FrogIntel/OPENHONK/releases)
 
 > 🔶 Run through [VirusTotal](https://www.virustotal.com/) if unsure.
 
@@ -42,7 +43,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android w
 - **Background Playback**: Keep audio/video playing when you switch apps (Rumble, Bitchute, and more)
 - **Privacy First**: Incognito WebView, no tracking, no analytics, no ads
 - **HTTP Login Blocking**: Prevents password entry on insecure HTTP connections
-- **Themes**: Choose between RED_CASTLE (dark) or GREEN_CASTLE (light)
+- **Themes**: Choose between dark or light theme
 - **Notifications**: In-app notification system with badge counts
 - **Screenshot Caching**: Tiles load faster with cached screenshots and favicon fallbacks
 - **Intro Walkthrough**: New users get a guided tour of key features
@@ -50,7 +51,33 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android w
 
 ---
 
-## 📱 Categories
+## � Screenshots
+
+<details>
+<summary>Click to expand</summary>
+
+<br>
+
+<div align="center">
+
+| | | |
+|:---:|:---:|:---:|
+| <img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" alt="Breb Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" alt="Breb - Conspiracy" /> | <img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" alt="Breb - Putainfo" /> |
+| **Breb Tab** | **Conspiracy** | **Putainfo** |
+| <img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" alt="Sauce Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" alt="Sauce - Q+ANON" /> | <img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" alt="Frens Tab" /> |
+| **Sauce Tab** | **Q + ANON** | **Frens Tab** |
+| <img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" alt="Showtime Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" alt="Showtime Category" /> | <img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" alt="WebView" /> |
+| **Showtime Tab** | **Showtime Category** | **WebView** |
+| <img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" alt="Notifications" /> | | |
+| **Notifications** | | |
+
+</div>
+
+</details>
+
+---
+
+## �📱 Categories
 
 | Tab | Content |
 |-----|---------|
@@ -73,8 +100,8 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android w
 ### Setup
 
 ```bash
-git clone https://github.com/FrogIntel/REEBITT.git
-cd REEBITT
+git clone https://github.com/FrogIntel/OPENHONK.git
+cd OPENHONK
 npm install
 ```
 
@@ -106,8 +133,7 @@ APK output: `android/app/build/outputs/apk/release/app-release.apk`
 - ✅ Built-in AdBlock with auto-update
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
-- ⬜ Browser bookmark extension
-- ⬜ Put on stores
+- ✅ Browser bookmark extension
 - TBC — see Telegram channel for more
 
 ---
@@ -184,7 +210,7 @@ UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australi
 ## 📬 Contact & Support
 
 - **GitHub**: [github.com/FrogIntel](https://github.com/FrogIntel)
-- **Telegram**: [t.me/frogintel](https://t.me/frogintel)
+- **Telegram**: [t.me/openhonk](https://t.me/openhonk)
 - **SimpleX**: [Join via SimpleX Chat](https://simplex.chat/contact)
 
 ---

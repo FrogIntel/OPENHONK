@@ -339,7 +339,7 @@ Download Now:
 ➡ https://github.com/FrogIntel/OPENHONK/releases
 
 🐸 OPENHONK by Frog Intel
-👉 https://t.me/s/frogintel
+👉 https://t.me/s/openhonk
 👉 https://github.com/FrogIntel`,
         url: 'https://github.com/FrogIntel/OPENHONK/releases',
       });

@@ -59,7 +59,7 @@ const CustomDrawerContent = (props) => {
     } else if (item.id === 'waronchildren') {
       props.navigation.navigate('Category', { categoryId: 'health' });
     } else if (item.id === 'contact') {
-      props.navigation.navigate('WebView', { url: 'https://t.me/frogintel', title: 'Contact Us' });
+      props.navigation.navigate('WebView', { url: 'https://t.me/openhonk', title: 'Contact Us' });
     }
   };
 
