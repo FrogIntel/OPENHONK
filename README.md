@@ -7,7 +7,7 @@
 <img src="assets/logo.png" width="120" alt="OPENHONK Logo" />
 
 [![GitHub release](https://img.shields.io/github/v/release/FrogIntel/OPENHONK?style=for-the-badge&color=ffcc33&label=DOWNLOAD)](https://github.com/FrogIntel/OPENHONK/releases)
-[![Profile Views](https://komarev.com/ghpvc/?username=FrogIntel&style=for-the-badge&color=ffcc33&label=VIEWS)](https://github.com/FrogIntel)
+[![Profile Views](https://komarev.com/ghpvc/?username=FrogIntel&style=for-the-badge&color=000000&label=VIEWS&labelColor=ffcc33)](https://github.com/FrogIntel)
 
 </div>
 
@@ -60,16 +60,26 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Android w
 
 <div align="center">
 
-| | | |
-|:---:|:---:|:---:|
-| <img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" alt="Breb Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" alt="Breb - Conspiracy" /> | <img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" alt="Breb - Putainfo" /> |
-| **Breb Tab** | **Conspiracy** | **Putainfo** |
-| <img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" alt="Sauce Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" alt="Sauce - Q+ANON" /> | <img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" alt="Frens Tab" /> |
-| **Sauce Tab** | **Q + ANON** | **Frens Tab** |
-| <img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" alt="Showtime Tab" /> | <img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" alt="Showtime Category" /> | <img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" alt="WebView" /> |
-| **Showtime Tab** | **Showtime Category** | **WebView** |
-| <img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" alt="Notifications" /> | | |
-| **Notifications** | | |
+<table>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" /></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" /></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" /></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" /></td>
+</tr>
+</table>
 
 </div>
 
@@ -211,7 +221,6 @@ UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australi
 
 - **GitHub**: [github.com/FrogIntel](https://github.com/FrogIntel)
 - **Telegram**: [t.me/openhonk](https://t.me/openhonk)
-- **SimpleX**: [Join via SimpleX Chat](https://simplex.chat/contact)
 
 ---
 
