@@ -4,7 +4,7 @@
 
 ### Rip Through the Veil of Lies
 
-<img src="assets/favicon.png" width="120" alt="OPENHONK Logo" />
+<img src="assets/logo.png" width="120" alt="OPENHONK Logo" />
 
 [![GitHub release](https://img.shields.io/github/v/release/FrogIntel/OPENHONK?style=for-the-badge&color=ffcc33&label=DOWNLOAD)](https://github.com/FrogIntel/OPENHONK/releases)
 [![Profile Views](https://komarev.com/ghpvc/?username=FrogIntel&style=for-the-badge&color=ffcc33&label=VIEWS)](https://github.com/FrogIntel)
