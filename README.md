@@ -196,7 +196,7 @@ OPENHONK funding is out of pocket. It's not people-funded, nor will it ask for d
 
 Followed by the head dev for many years who witnessed the shadowbanning of this remarkable music channel. Embraced with 432hz & 528hz music mixes ranging from chillstep to drum and bass.
 
-👉 [youtube.com/@SynoviaRevival](https://youtube.com/@SynoviaRevival)
+👉 [youtube.com/@NorthDawnstar](https://www.youtube.com/@NorthDawnstar)
 
 ---
 
