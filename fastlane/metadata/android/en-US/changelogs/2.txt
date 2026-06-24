@@ -1,0 +1,1 @@
+Initial release. Removed piracy index for F-Droid compliance.

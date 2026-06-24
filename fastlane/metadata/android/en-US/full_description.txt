@@ -1,0 +1,19 @@
+<p><b>OPENHONK</b> — Rip Through the Veil of Lies</p>
+
+<p>Tired of Big Tech feeding you sanitized bullshit? OPENHONK is your Open Source Android weapon to shred the mainstream narrative and unearth the raw, unfiltered truth. Born from the ashes of Frog Intel, this app was banned by Google's thought police for daring to expose what they don't want you to know. Now it's back, fiercer than ever, and it's <b>free</b>. No corporate overlords. No donations. Just pure, out-of-pocket rebellion.</p>
+
+<p><b>Features:</b></p>
+<ul>
+<li><b>5 Tabs:</b> Home, Breb, Sauce, Frens, Showtime — each packed with curated truth sources</li>
+<li><b>Built-in AdBlock</b> with auto-update — no ads, no tracking</li>
+<li><b>Background audio/video playback</b> — keep listening when you switch apps</li>
+<li><b>Screenshot caching</b> — fast tile loading with cached previews</li>
+<li><b>Dark & light themes</b> — pick your vibe</li>
+<li><b>Universal search</b> across all categories</li>
+<li><b>Intro walkthrough</b> for new users</li>
+<li><b>No tracking, no analytics, no ads, no donations</b></li>
+</ul>
+
+<p><b>Categories include:</b> News & Intel, Q websites, Conspiracy Research, Health & Medical, Privacy & Tech Tools, OSINT, Political Orgs, Platforms, Petitions & Activism, and more.</p>
+
+<p>The revolution won't be televised. It's on your phone.</p>
