@@ -1,0 +1,1 @@
+F-Droid compliance: removed hardcoded JDK path, renamed project, bundled Google Fonts locally, removed duplicate video assets.

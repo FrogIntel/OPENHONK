@@ -82,11 +82,16 @@ android {
         applicationId "com.openhonk"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 4
+        versionName "1.0.3"
     }
 
     buildDir = "C:/r-build/${project.name}"
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

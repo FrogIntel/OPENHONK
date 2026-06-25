@@ -1,0 +1,1 @@
+Removed duplicate video assets. APK size reduced from 174MB to 110MB. Piracy Index removed from app and bookmarks.
