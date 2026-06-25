@@ -60,26 +60,81 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <div align="center">
 
-<table>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" /></td>
-</tr>
-</table>
+<img src="assets/screenshots/Screenshot_20260624-000850.png" width="270" alt="Screenshot 1" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000855.png" width="270" alt="Screenshot 2" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000859.png" width="270" alt="Screenshot 3" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000905.png" width="270" alt="Screenshot 4" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000915.png" width="270" alt="Screenshot 5" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000927.png" width="270" alt="Screenshot 6" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000942.png" width="270" alt="Screenshot 7" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-000958.png" width="270" alt="Screenshot 8" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-001030.png" width="270" alt="Screenshot 9" />
+
+<details>
+<summary>▶ Next</summary>
+
+<br>
+
+<img src="assets/screenshots/Screenshot_20260624-001039.png" width="270" alt="Screenshot 10" />
+
+</details>
+</details>
+</details>
+</details>
+</details>
+</details>
+</details>
+</details>
+</details>
+</details>
 
 </div>
 
