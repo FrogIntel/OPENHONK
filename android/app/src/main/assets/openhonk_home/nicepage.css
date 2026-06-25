@@ -18670,6 +18670,9 @@ p {
 .u-font-lobster.u-custom-font {
   font-family: Lobster, display !important;
 }
+.u-font-gunmetal.u-custom-font {
+  font-family: 'Gun Metal', sans-serif !important;
+}
 .u-rectangle {
   border-radius: 0;
 }

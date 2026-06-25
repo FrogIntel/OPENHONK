@@ -6,7 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { prefetchUrl, initStoreScreenshots, clearFailedCache, backgroundPrefetchAll, getCacheStats, getUncachedUrls, startRetryTimer } from './components/screenshotCache';
-import { fetchAdBlockList } from './components/adBlockList';
+import { fetchAdBlockList, checkAndScheduleAdBlockUpdate } from './components/adBlockList';
 import { appData } from './data/urls';
 import ThemedBackground from './components/ThemedBackground';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -90,7 +90,7 @@ const prefetchAllTiles = async () => {
 };
 
 prefetchAllTiles();
-fetchAdBlockList();
+checkAndScheduleAdBlockUpdate();
 startRetryTimer();
 
 const Icon = ({ name, size, color }) => {

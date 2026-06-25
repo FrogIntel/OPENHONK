@@ -1,46 +1,52 @@
 @font-face {
+  font-family: 'Gun Metal';
+  font-style: normal;
+  font-weight: 400;
+  src: url(gunmetl.ttf) format('truetype');
+}
+@font-face {
   font-family: 'Lobster';
   font-style: normal;
   font-weight: 400;
-  src: url(fonts/Lobster-Regular.ttf) format('truetype');
+  src: url(Lobster-Regular.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
   font-stretch: normal;
-  src: url(fonts/OpenSans-Regular.ttf) format('truetype');
+  src: url(OpenSans-Regular.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
   font-stretch: normal;
-  src: url(fonts/OpenSans-Bold.ttf) format('truetype');
+  src: url(OpenSans-Bold.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Oswald';
   font-style: normal;
   font-weight: 400;
-  src: url(fonts/Oswald-Bold.ttf) format('truetype');
+  src: url(Oswald-Regular.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Oswald';
   font-style: normal;
   font-weight: 700;
-  src: url(fonts/Oswald-Regular.ttf) format('truetype');
+  src: url(Oswald-Bold.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 400;
   font-stretch: normal;
-  src: url(fonts/Roboto-Bold.ttf) format('truetype');
+  src: url(Roboto-Regular.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 700;
   font-stretch: normal;
-  src: url(fonts/Roboto-Regular.ttf) format('truetype');
+  src: url(Roboto-Bold.ttf) format('truetype');
 }

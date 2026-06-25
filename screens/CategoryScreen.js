@@ -130,18 +130,20 @@ const CategoryScreen = ({ route, navigation }) => {
       Promise.all([
         AsyncStorage.getItem('@adblock_last_update'),
         AsyncStorage.getItem('@dismissed_notifications'),
-      ]).then(([stored, dismissedRaw]) => {
+        AsyncStorage.getItem('@reel_bookmarks_updated'),
+      ]).then(([stored, dismissedRaw, bookmarksUpdatedRaw]) => {
         let dismissed = [];
         try { dismissed = JSON.parse(dismissedRaw) || []; } catch (e) {}
         let adblockEntry = null;
         if (stored) {
           try {
             const info = JSON.parse(stored);
+            const isSuccess = info.status !== 'failed';
             adblockEntry = {
               id: 'adblock',
-              title: 'AdBlock Updated',
+              title: isSuccess ? 'AdBlock Updated' : 'AdBlock Update Failed',
               url: 'https://easylist.to/easylist/easylist.txt',
-              message: `${info.domains} domains loaded from EasyList`,
+              message: isSuccess ? `${info.domains} domains loaded from EasyList` : `Update failed: ${info.error || 'Network error'}. Using cached list.`,
               date: info.date,
             };
           } catch (e) {}
@@ -154,7 +156,20 @@ const CategoryScreen = ({ route, navigation }) => {
             date: new Date().toISOString(),
           };
         }
-        const allNotifs = [adblockEntry, ...(category.urls || [])].filter(n => n && !dismissed.includes(n.id));
+        let bookmarkEntry = null;
+        if (bookmarksUpdatedRaw) {
+          try {
+            const bmInfo = JSON.parse(bookmarksUpdatedRaw);
+            bookmarkEntry = {
+              id: 'bookmarks',
+              title: 'Bookmarks Updated',
+              url: 'file:///android_asset/reel_browser/index.html',
+              message: 'Default REEL bookmarks have been updated. Open REEL to reload.',
+              date: bmInfo.date,
+            };
+          } catch (e) {}
+        }
+        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || [])].filter(n => n && !dismissed.includes(n.id));
         setNotifUrls(allNotifs);
       });
     } else {
@@ -246,7 +261,13 @@ const CategoryScreen = ({ route, navigation }) => {
         key={`grid-${numColumns}`}
         style={styles.content}
         contentContainerStyle={{ paddingTop: 60, paddingBottom: insets.bottom + 20, paddingHorizontal: tilePadding, alignItems: 'center' }}
-        data={getFilteredUrls(category.urls) || []}
+        data={(() => {
+          const urls = getFilteredUrls(category.urls) || [];
+          if (categoryKey === 'putainfo') {
+            return urls.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+          }
+          return urls;
+        })()}
         numColumns={numColumns}
         keyExtractor={(item, index) => index.toString()}
         onViewableItemsChanged={onViewableItemsChanged.current}

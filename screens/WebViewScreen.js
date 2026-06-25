@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert, Clipboard, ToastAndroid } from 'react-native';
 import { startBackgroundAudio, stopBackgroundAudio } from '../utils/backgroundAudio';
 import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
@@ -16,6 +16,7 @@ const Icon = ({ name, size, color }) => {
     'arrow-back': '←',
     'menu': '☰',
     'refresh': '↻',
+    'copy': '⧉',
   };
   return <Text style={{ fontSize: size, color }}>{iconMap[name] || '•'}</Text>;
 };
@@ -33,6 +34,7 @@ const WebViewScreen = ({ route, navigation }) => {
   const [reelLoading, setReelLoading] = useState(true);
   const [defaultBookmarks, setDefaultBookmarks] = useState(null);
   const [isInsecure, setIsInsecure] = useState(false);
+  const [isLocalContent, setIsLocalContent] = useState(url?.startsWith('file://') || false);
   const isReelBrowser = title === 'REEL' || url?.includes('anitabuidpe') || url?.includes('reel_browser');
 
   useEffect(() => {
@@ -40,10 +42,60 @@ const WebViewScreen = ({ route, navigation }) => {
       RNFS.readFileAssets('reel_browser/default_bookmarks.json', 'base64')
         .then(data => {
           setDefaultBookmarks(data);
+          const bookmarkHash = data.length + '_' + data.substring(0, 32);
+          AsyncStorage.getItem('@reel_bookmarks_version').then(storedVersion => {
+            if (storedVersion && storedVersion !== bookmarkHash) {
+              AsyncStorage.setItem('@reel_bookmarks_updated', JSON.stringify({ date: new Date().toISOString(), version: bookmarkHash }));
+              AsyncStorage.setItem('@reel_bookmarks_version', bookmarkHash);
+            } else if (!storedVersion) {
+              AsyncStorage.setItem('@reel_bookmarks_version', bookmarkHash);
+            }
+          });
         })
         .catch(e => {});
     }
   }, [isReelBrowser]);
+
+  useEffect(() => {
+    if (isReelBrowser) {
+      AsyncStorage.getItem('@reel_bookmarks_updated').then(updatedData => {
+        if (updatedData) {
+          const updateInfo = JSON.parse(updatedData);
+          AsyncStorage.getItem('@reel_bookmarks_update_prompted').then(prompted => {
+            if (prompted === updateInfo.version) return;
+            AsyncStorage.setItem('@reel_bookmarks_update_prompted', updateInfo.version);
+            Alert.alert(
+              'Bookmarks Updated',
+              'The default bookmarks have been updated. Would you like to reload them?',
+              [
+                { text: 'No', style: 'cancel' },
+                {
+                  text: 'Yes',
+                  onPress: () => {
+                    if (defaultBookmarks && webViewRef.current) {
+                      try {
+                        webViewRef.current.injectJavaScript(
+                          "(function(){" +
+                          "try{" +
+                          "var raw=atob('" + defaultBookmarks + "');" +
+                          "localStorage.setItem('bookmarks',raw);" +
+                          "window.location.reload();" +
+                          "}catch(e){console.error('Failed to set bookmarks:',e);}" +
+                          "})();"
+                        );
+                      } catch (e) {
+                        console.error('[REEL] Failed to inject updated bookmarks:', e);
+                      }
+                    }
+                  },
+                },
+              ]
+            );
+          });
+        }
+      });
+    }
+  }, [isReelBrowser, defaultBookmarks]);
 
   useEffect(() => {
     fetchAdBlockList().then(() => {
@@ -64,6 +116,17 @@ const WebViewScreen = ({ route, navigation }) => {
   const handleRefresh = () => {
     if (webViewRef.current) {
       webViewRef.current.reload();
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (currentUrl) {
+      Clipboard.setString(currentUrl);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('URL copied to clipboard', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Copied', 'URL copied to clipboard');
+      }
     }
   };
 
@@ -155,6 +218,7 @@ const WebViewScreen = ({ route, navigation }) => {
             trackCookieDomain(navState.url);
             setCurrentUrl(navState.url);
             setIsInsecure(navState.url.startsWith('http://'));
+            setIsLocalContent(navState.url.startsWith('file://'));
           }
         }}
         onShouldStartLoadWithRequest={(request) => {
@@ -306,10 +370,20 @@ const WebViewScreen = ({ route, navigation }) => {
           <Icon name="arrow-back" size={28} color={theme.primaryColor} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.primaryColor }]}>{title}</Text>
-        {!isReelBrowser && !currentUrl?.startsWith('file://') && (
+        {!isReelBrowser && !isLocalContent && (
           <View style={[styles.protocolBadge, { backgroundColor: isInsecure ? 'rgba(204,0,0,0.8)' : 'rgba(0,153,51,0.8)' }]}>
             <Text style={styles.protocolText}>{isInsecure ? 'HTTP' : 'HTTPS'}</Text>
           </View>
+        )}
+        {!isReelBrowser && isLocalContent && (
+          <View style={[styles.protocolBadge, { backgroundColor: 'rgba(255,204,51,0.8)' }]}>
+            <Text style={styles.protocolText}>LOCAL</Text>
+          </View>
+        )}
+        {!isReelBrowser && !isLocalContent && (
+          <TouchableOpacity onPress={handleCopyUrl} style={styles.copyButton}>
+            <Icon name="copy" size={24} color={theme.primaryColor} />
+          </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleRefresh}>
           <Icon name="refresh" size={28} color={theme.primaryColor} />
@@ -356,6 +430,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
     letterSpacing: 0.5,
+  },
+  copyButton: {
+    paddingHorizontal: 6,
+    marginRight: 6,
   },
   webview: {
     flex: 1,

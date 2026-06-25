@@ -11,10 +11,11 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
   useEffect(() => {
     const loadBadge = async () => {
       try {
-        const [stored, dismissedRaw, viewedRaw] = await Promise.all([
+        const [stored, dismissedRaw, viewedRaw, bookmarksUpdatedRaw] = await Promise.all([
           AsyncStorage.getItem('@adblock_last_update'),
           AsyncStorage.getItem('@dismissed_notifications'),
           AsyncStorage.getItem('@notifications_viewed'),
+          AsyncStorage.getItem('@reel_bookmarks_updated'),
         ]);
 
         let dismissed = [];
@@ -29,6 +30,17 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
           try {
             const info = JSON.parse(stored);
             if (!viewed.adblock || new Date(viewed.adblock) < new Date(info.date)) {
+              count++;
+            }
+          } catch (e) {
+            count++;
+          }
+        }
+
+        if (bookmarksUpdatedRaw && !dismissed.includes('bookmarks')) {
+          try {
+            const bmInfo = JSON.parse(bookmarksUpdatedRaw);
+            if (!viewed.bookmarks || new Date(viewed.bookmarks) < new Date(bmInfo.date)) {
               count++;
             }
           } catch (e) {
@@ -60,9 +72,10 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
       let viewed = {};
       try { viewed = JSON.parse(viewedRaw) || {}; } catch (e) {}
 
-      const [stored, dismissedRaw] = await Promise.all([
+      const [stored, dismissedRaw, bookmarksUpdatedRaw] = await Promise.all([
         AsyncStorage.getItem('@adblock_last_update'),
         AsyncStorage.getItem('@dismissed_notifications'),
+        AsyncStorage.getItem('@reel_bookmarks_updated'),
       ]);
 
       let dismissed = [];
@@ -74,6 +87,15 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
           viewed.adblock = info.date || now;
         } catch (e) {
           viewed.adblock = now;
+        }
+      }
+
+      if (bookmarksUpdatedRaw && !dismissed.includes('bookmarks')) {
+        try {
+          const bmInfo = JSON.parse(bookmarksUpdatedRaw);
+          viewed.bookmarks = bmInfo.date || now;
+        } catch (e) {
+          viewed.bookmarks = now;
         }
       }
 

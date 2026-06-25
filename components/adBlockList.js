@@ -89,7 +89,7 @@ export const fetchAdBlockList = async () => {
         currentBlockList = parsed;
         const cachedUpdate = await AsyncStorage.getItem('@adblock_last_update');
         if (!cachedUpdate) {
-          await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date(parseInt(cachedTimestamp)).toISOString(), domains: parsed.domains.size }));
+          await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date(parseInt(cachedTimestamp)).toISOString(), domains: parsed.domains.size, status: 'success' }));
         }
         return parsed;
       }
@@ -102,7 +102,7 @@ export const fetchAdBlockList = async () => {
 
     await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(blockList));
     await AsyncStorage.setItem(CACHE_TIMESTAMP_KEY, String(now));
-    await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date().toISOString(), domains: blockList.domains.size }));
+    await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date().toISOString(), domains: blockList.domains.size, status: 'success' }));
 
     currentBlockList = blockList;
 
@@ -118,8 +118,16 @@ export const fetchAdBlockList = async () => {
     return blockList;
   } catch (error) {
     console.error('Failed to fetch ad block list, using fallback:', error);
-    await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date().toISOString(), domains: currentBlockList.domains.size }));
+    await AsyncStorage.setItem('@adblock_last_update', JSON.stringify({ date: new Date().toISOString(), domains: currentBlockList.domains.size, status: 'failed', error: error.message || 'Unknown error' }));
     return currentBlockList;
+  }
+};
+
+export const checkAndScheduleAdBlockUpdate = async () => {
+  const cachedTimestamp = await AsyncStorage.getItem(CACHE_TIMESTAMP_KEY);
+  const now = Date.now();
+  if (!cachedTimestamp || (now - parseInt(cachedTimestamp)) >= CACHE_TTL) {
+    await fetchAdBlockList();
   }
 };
 
