@@ -119,10 +119,17 @@ npm install
 
 ```bash
 cd android
-.\gradlew.bat assembleRelease
+./gradlew.bat assembleRelease    # Windows
+./gradlew assembleRelease          # macOS/Linux
 ```
 
-APK output: `android/app/build/outputs/apk/release/app-release.apk`
+The signed APK will be generated in the build output directory.
+
+> **Note:** You'll need your own release keystore. Create one with:
+> ```bash
+> keytool -genkey -v -keystore android/app/release.keystore -alias openhonk-release -keyalg RSA -keysize 2048 -validity 10000
+> ```
+> Then configure the signing credentials in `android/app/build.gradle` under `signingConfigs.release`.
 
 ---
 
@@ -144,6 +151,7 @@ APK output: `android/app/build/outputs/apk/release/app-release.apk`
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
 - ✅ Browser bookmark extension
+- ⬜ Port to iOS
 - TBC — see Telegram channel for more
 
 ---
