@@ -496,7 +496,7 @@ Download Now:
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.tile}
-            onPress={() => openCategory('showtime', 'SHOWTIME', 'showtime')}
+            onPress={() => navigation.navigate('ShowtimeTab')}
           >
             <SlideshowImage
               items={showtimeItems}

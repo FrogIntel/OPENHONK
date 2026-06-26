@@ -79,7 +79,7 @@ const WebViewScreen = ({ route, navigation }) => {
                           "try{" +
                           "var raw=atob('" + defaultBookmarks + "');" +
                           "localStorage.setItem('bookmarks',raw);" +
-                          "window.location.reload();" +
+                          "setTimeout(function(){window.location.reload();},300);" +
                           "}catch(e){console.error('Failed to set bookmarks:',e);}" +
                           "})();"
                         );
@@ -312,7 +312,7 @@ const WebViewScreen = ({ route, navigation }) => {
                               "try{" +
                               "var raw=atob('" + defaultBookmarks + "');" +
                               "localStorage.setItem('bookmarks',raw);" +
-                              "window.location.reload();" +
+                              "setTimeout(function(){window.location.reload();},300);" +
                               "}catch(e){console.error('Failed to set bookmarks:',e);}" +
                               "})();"
                             );

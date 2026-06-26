@@ -139,9 +139,12 @@ const CategoryScreen = ({ route, navigation }) => {
         AsyncStorage.getItem('@adblock_last_update'),
         AsyncStorage.getItem('@dismissed_notifications'),
         AsyncStorage.getItem('@reel_bookmarks_updated'),
-      ]).then(([stored, dismissedRaw, bookmarksUpdatedRaw]) => {
+        AsyncStorage.getItem('@notifications_viewed'),
+      ]).then(([stored, dismissedRaw, bookmarksUpdatedRaw, viewedRaw]) => {
         let dismissed = [];
         try { dismissed = JSON.parse(dismissedRaw) || []; } catch (e) {}
+        let viewed = {};
+        try { viewed = JSON.parse(viewedRaw) || {}; } catch (e) {}
         let adblockEntry = null;
         if (stored) {
           try {
@@ -177,7 +180,12 @@ const CategoryScreen = ({ route, navigation }) => {
             };
           } catch (e) {}
         }
-        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || [])].filter(n => n && !dismissed.includes(n.id));
+        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || [])]
+          .filter(n => n && !dismissed.includes(n.id))
+          .map(n => ({
+            ...n,
+            isNew: !viewed[n.id] || (n.date && new Date(viewed[n.id]) < new Date(n.date)),
+          }));
         setNotifUrls(allNotifs);
       });
     } else {
@@ -259,7 +267,10 @@ const CategoryScreen = ({ route, navigation }) => {
                 <Text style={[styles.notifIconText, { color: theme.primaryColor }]}>{isAdblock ? '🛡️' : isNewContent ? '🎬' : '🔔'}</Text>
               </View>
               <View style={styles.notifContent}>
-                <Text style={[styles.notifTitle, { color: theme.textColor }]} numberOfLines={2}>{item.title}</Text>
+                <View style={styles.notifTitleRow}>
+                  <Text style={[styles.notifTitle, { color: theme.textColor }]} numberOfLines={2}>{item.title}</Text>
+                  {item.isNew && <View style={styles.notifNewBadge}><Text style={styles.notifNewBadgeText}>NEW</Text></View>}
+                </View>
                 {item.message ? (
                   <Text style={[styles.notifMessage, { color: theme.textSecondaryColor }]} numberOfLines={3}>{item.message}</Text>
                 ) : null}
@@ -447,6 +458,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
+    flexShrink: 1,
+  },
+  notifTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  notifNewBadge: {
+    backgroundColor: '#ff3333',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  notifNewBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   notifMessage: {
     fontSize: 14,
