@@ -13,6 +13,7 @@ import { searchAllApp } from '../utils/globalSearch';
 import WebsiteCarousel from '../components/WebsiteCarousel';
 import SearchGridModal from '../components/SearchGridModal';
 import NotificationIcon from '../components/NotificationIcon';
+import { isNewContent, markNewContentSeen, useNewContentSync } from '../utils/newContent';
 import { prefetchUrl } from '../components/screenshotCache';
 
 const tilePadding = 10;
@@ -38,11 +39,15 @@ const findFrensUrl = (title) => {
 };
 
 const findShowtimeUrl = (title) => {
-  const item = appData.showtime.urls.find(u => u.title === title);
-  return item ? item.url : null;
+  for (const subCat of Object.keys(appData.showtime)) {
+    const item = appData.showtime[subCat].urls.find(u => u.title === title);
+    if (item) return item.url;
+  }
+  return null;
 };
 
 const CategoryScreen = ({ route, navigation }) => {
+  useNewContentSync();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -93,9 +98,12 @@ const CategoryScreen = ({ route, navigation }) => {
   };
 
   const openShowtimeUrl = (title) => {
-    const showtimeItem = appData.showtime.urls.find(item => item.title === title);
-    if (showtimeItem && showtimeItem.url) {
-      navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+    for (const subCat of Object.keys(appData.showtime)) {
+      const showtimeItem = appData.showtime[subCat].urls.find(item => item.title === title);
+      if (showtimeItem && showtimeItem.url) {
+        navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+        return;
+      }
     }
   };
 
@@ -232,15 +240,23 @@ const CategoryScreen = ({ route, navigation }) => {
             </View>
           }
           renderItem={({ item }) => {
-            const isInfoOnly = item.id === 'adblock';
-            const ItemTag = isInfoOnly ? View : TouchableOpacity;
+            const isAdblock = item.id === 'adblock';
+            const isNewContent = item.url && item.url.startsWith('openhonk://');
+            const handleNotifPress = () => {
+              if (isNewContent) {
+                navigation.navigate('NewContent');
+              } else {
+                openUrl(item.url, item.title);
+              }
+            };
+            const ItemTag = isAdblock ? View : TouchableOpacity;
             return (
             <ItemTag
               style={[styles.notifItem, { borderColor: theme.primaryColor + '33' }]}
-              {...(isInfoOnly ? {} : { onPress: () => openUrl(item.url, item.title) })}
+              {...(isAdblock ? {} : { onPress: handleNotifPress })}
             >
               <View style={[styles.notifIcon, { backgroundColor: theme.primaryColor + '22' }]}>
-                <Text style={[styles.notifIconText, { color: theme.primaryColor }]}>{item.id === 'adblock' ? '🛡️' : '🔔'}</Text>
+                <Text style={[styles.notifIconText, { color: theme.primaryColor }]}>{isAdblock ? '🛡️' : isNewContent ? '🎬' : '🔔'}</Text>
               </View>
               <View style={styles.notifContent}>
                 <Text style={[styles.notifTitle, { color: theme.textColor }]} numberOfLines={2}>{item.title}</Text>
@@ -251,7 +267,7 @@ const CategoryScreen = ({ route, navigation }) => {
                   {item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
                 </Text>
               </View>
-              {!isInfoOnly && <Text style={[styles.notifChevron, { color: theme.primaryColor }]}>›</Text>}
+              {!isAdblock && <Text style={[styles.notifChevron, { color: theme.primaryColor }]}>›</Text>}
             </ItemTag>
             );
           }}
@@ -275,7 +291,7 @@ const CategoryScreen = ({ route, navigation }) => {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.gridItem, { width: tileWidth, marginLeft: tilePadding }]}
-            onPress={() => openUrl(item.url, item.title)}
+            onPress={() => { markNewContentSeen(item.url); openUrl(item.url, item.title); }}
           >
             <View style={[styles.gridThumbnail, { width: tileWidth, height: tileWidth * 0.75 }]}>
               <ScreenshotImage
@@ -285,6 +301,9 @@ const CategoryScreen = ({ route, navigation }) => {
               <View style={styles.gridOverlay}>
                 <Text style={styles.gridTitle} numberOfLines={2}>{item.title}</Text>
               </View>
+              {isNewContent(item.url) && (
+                <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>
+              )}
             </View>
           </TouchableOpacity>
         )}
@@ -386,6 +405,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#ffcc33',
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#ff3333',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  newBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   notifItem: {
     flexDirection: 'row',

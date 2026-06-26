@@ -12,6 +12,7 @@ import { searchAllApp } from '../utils/globalSearch';
 import SideMenu from '../components/SideMenu';
 import SearchGridModal from '../components/SearchGridModal';
 import NotificationIcon from '../components/NotificationIcon';
+import { isNewContent, useNewContentSync } from '../utils/newContent';
 
 const Icon = ({ name, size, color }) => {
   const iconMap = {
@@ -25,6 +26,7 @@ const Icon = ({ name, size, color }) => {
 };
 
 const SauceScreen = ({ navigation }) => {
+  useNewContentSync();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -215,6 +217,7 @@ Download Now:
       <ScrollView style={styles.content}>
         {Object.entries(sauceData).map(([key, category]) => {
           const filteredCount = getFilteredUrls(category.urls).length;
+          const hasNew = category.urls.some(item => isNewContent(item.url));
           return (
           <TouchableOpacity
             key={key}
@@ -222,7 +225,10 @@ Download Now:
             onPress={() => openCategory(key, category.title)}
           >
             <Text style={styles.categoryTitle}>{category.title}</Text>
-            <Text style={styles.categoryCount}>{filteredCount} items</Text>
+            <View style={styles.categoryRow}>
+              <Text style={styles.categoryCount}>{filteredCount} items</Text>
+              {hasNew && <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>}
+            </View>
           </TouchableOpacity>
           );
         })}
@@ -378,6 +384,22 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  newBadge: {
+    backgroundColor: '#ff3333',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  newBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

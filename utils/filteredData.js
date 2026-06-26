@@ -56,7 +56,7 @@ export const getFilteredAppData = () => {
     sauce: filterCategory(appData.sauce),
     breb: filterCategory(appData.breb),
     frens: appData.frens ? { ...appData.frens, urls: getFilteredUrls(appData.frens.urls) } : appData.frens,
-    showtime: appData.showtime ? { ...appData.showtime, urls: getFilteredUrls(appData.showtime.urls) } : appData.showtime,
+    showtime: filterCategory(appData.showtime),
     notifications: appData.notifications,
   };
 };

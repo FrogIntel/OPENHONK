@@ -13,6 +13,7 @@ import { searchAllApp } from '../utils/globalSearch';
 import SideMenu from '../components/SideMenu';
 import SearchGridModal from '../components/SearchGridModal';
 import NotificationIcon from '../components/NotificationIcon';
+import { isNewContent, useNewContentSync } from '../utils/newContent';
 
 const Icon = ({ name, size, color }) => {
   const iconMap = {
@@ -26,6 +27,7 @@ const Icon = ({ name, size, color }) => {
 };
 
 const ShowtimeScreen = ({ navigation }) => {
+  useNewContentSync();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -34,7 +36,9 @@ const ShowtimeScreen = ({ navigation }) => {
   const [searchVisible, setSearchVisible] = useState(false);
   const [currentWebsiteIndex, setCurrentWebsiteIndex] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
-  const showtimeData = { ...appData.showtime, urls: getFilteredUrls(appData.showtime.urls) };
+  const showtimeData = Object.fromEntries(
+    Object.entries(appData.showtime).sort(([, a], [, b]) => (a.title || '').localeCompare(b.title || ''))
+  );
   const scrollViewRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -55,16 +59,19 @@ const ShowtimeScreen = ({ navigation }) => {
     })
   ).current;
 
-  // Get random websites from showtime for carousel
+  // Get random websites from all showtime categories for carousel
   const getRandomWebsites = () => {
     const allWebsites = [];
-    if (showtimeData && showtimeData.urls) {
-      showtimeData.urls.forEach(item => {
-        if (item && item.url && item.url.trim() !== '') {
-          allWebsites.push({ ...item, category: showtimeData.title });
-        }
-      });
-    }
+    Object.keys(showtimeData).forEach(subCategory => {
+      const categoryData = showtimeData[subCategory];
+      if (categoryData && categoryData.urls) {
+        getFilteredUrls(categoryData.urls).forEach(item => {
+          if (item && item.url && item.url.trim() !== '') {
+            allWebsites.push({ ...item, category: categoryData.title });
+          }
+        });
+      }
+    });
     // Shuffle and take 5
     return allWebsites.sort(() => Math.random() - 0.5).slice(0, 5);
   };
@@ -148,6 +155,10 @@ Download Now:
     }
   };
 
+  const openCategory = (categoryKey, categoryTitle) => {
+    navigation.navigate('Category', { categoryKey, categoryTitle, data: showtimeData });
+  };
+
   const getFaviconUrl = (url) => {
     if (!url) return null;
     try {
@@ -216,30 +227,26 @@ Download Now:
         </ScrollView>
       </View>
 
-      <FlatList
-        key={`showtime-grid-${isLandscape ? 3 : 2}`}
-        style={styles.content}
-        contentContainerStyle={{ paddingTop: 10, paddingBottom: insets.bottom + 20, paddingHorizontal: 10, alignItems: 'center' }}
-        data={getFilteredUrls(showtimeData.urls.filter(url => url.url && url.url.trim() !== ''))}
-        numColumns={isLandscape ? 3 : 2}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
+      <ScrollView style={styles.content}>
+        {Object.entries(showtimeData).map(([key, category]) => {
+          const filteredCount = getFilteredUrls(category.urls).length;
+          const hasNew = category.urls.some(item => isNewContent(item.url));
+          return (
           <TouchableOpacity
-            style={[styles.gridItem, { width: (width - 10 * (isLandscape ? 4 : 3)) / (isLandscape ? 3 : 2), marginLeft: 10 }]}
-            onPress={() => openUrl(item.url, item.title)}
+            key={key}
+            style={styles.categoryItem}
+            onPress={() => openCategory(key, category.title)}
           >
-            <View style={[styles.gridThumbnail, { width: (width - 10 * (isLandscape ? 4 : 3)) / (isLandscape ? 3 : 2), height: (width - 10 * (isLandscape ? 4 : 3)) / (isLandscape ? 3 : 2) * 0.75 }]}>
-              <ScreenshotImage
-                url={item.url}
-                style={styles.gridImage}
-              />
-              <View style={styles.gridOverlay}>
-                <Text style={styles.gridTitle} numberOfLines={2}>{item.title}</Text>
-              </View>
+            <Image source={require('../assets/showtime_icon.png')} style={styles.categoryIcon} />
+            <View style={styles.categoryText}>
+              <Text style={styles.categoryTitle}>{category.title}</Text>
+              <Text style={styles.categoryCount}>{filteredCount} items</Text>
             </View>
+            {hasNew && <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>}
           </TouchableOpacity>
-        )}
-      />
+          );
+        })}
+      </ScrollView>
     </SafeAreaView>
       <SideMenu visible={menuVisible} onClose={() => setMenuVisible(false)} navigation={navigation} />
     </View>
@@ -358,37 +365,61 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    padding: 15,
   },
-  gridItem: {
-    marginBottom: 20,
-  },
-  gridThumbnail: {
-    borderRadius: 12,
-    overflow: 'hidden',
+  categoryItem: {
     backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffcc33',
     elevation: 3,
     shadowColor: '#ffcc33',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+  categoryIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 15,
   },
-  gridOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 8,
+  categoryText: {
+    flex: 1,
   },
-  gridTitle: {
-    fontSize: 12,
-    fontWeight: '700',
+  newBadge: {
+    backgroundColor: '#ff3333',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    marginLeft: 10,
+  },
+  newBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: '900',
     color: '#ffcc33',
+    marginBottom: 5,
+    letterSpacing: 1,
+    textShadowColor: 'rgba(255, 204, 51, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    fontFamily: 'Gunmetal',
+  },
+  categoryCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffcc33',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
 });
 

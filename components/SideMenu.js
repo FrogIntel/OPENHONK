@@ -25,8 +25,11 @@ const findFrensUrl = (title) => {
 };
 
 const findShowtimeUrl = (title) => {
-  const item = appData.showtime.urls.find(u => u.title === title);
-  return item && !isUrlRemoved(item.url) ? item.url : null;
+  for (const subCat of Object.keys(appData.showtime)) {
+    const item = appData.showtime[subCat].urls.find(u => u.title === title);
+    if (item && !isUrlRemoved(item.url)) return item.url;
+  }
+  return null;
 };
 
 const SideMenu = ({ visible, onClose, navigation }) => {
@@ -101,10 +104,13 @@ const SideMenu = ({ visible, onClose, navigation }) => {
   };
 
   const openShowtimeUrl = (title) => {
-    const showtimeItem = appData.showtime.urls.find(item => item.title === title);
-    if (showtimeItem && showtimeItem.url) {
-      onClose();
-      navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+    for (const subCat of Object.keys(appData.showtime)) {
+      const showtimeItem = appData.showtime[subCat].urls.find(item => item.title === title);
+      if (showtimeItem && showtimeItem.url) {
+        onClose();
+        navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+        return;
+      }
     }
   };
 

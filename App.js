@@ -21,6 +21,7 @@ import SauceScreen from './screens/SauceScreen';
 import FrensScreen from './screens/FrensScreen';
 import ShowtimeScreen from './screens/ShowtimeScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import NewContentScreen from './screens/NewContentScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -78,8 +79,12 @@ const prefetchAllTiles = async () => {
     if (appData.frens?.urls) {
       appData.frens.urls.slice(0, 5).forEach(item => prefetchUrl(item.url));
     }
-    if (appData.showtime?.urls) {
-      appData.showtime.urls.slice(0, 5).forEach(item => prefetchUrl(item.url));
+    if (appData.showtime) {
+      Object.keys(appData.showtime).forEach(subCat => {
+        if (appData.showtime[subCat]?.urls) {
+          appData.showtime[subCat].urls.slice(0, 5).forEach(item => prefetchUrl(item.url));
+        }
+      });
     }
   }, 3000);
 
@@ -204,6 +209,7 @@ export default function App() {
             <Stack.Screen name="Category" component={CategoryScreen} />
             <Stack.Screen name="WebView" component={WebViewScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="NewContent" component={NewContentScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </View>

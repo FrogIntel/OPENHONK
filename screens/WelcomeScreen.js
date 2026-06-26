@@ -120,7 +120,13 @@ const WelcomeScreen = ({ navigation }) => {
     collectFromCategory(appData.breb, 4);
     collectFromCategory(appData.sauce, 4);
     if (appData.frens?.urls) appData.frens.urls.slice(0, 6).forEach(item => { if (item.url) urls.push(item.url); });
-    if (appData.showtime?.urls) appData.showtime.urls.slice(0, 6).forEach(item => { if (item.url) urls.push(item.url); });
+    if (appData.showtime) {
+      Object.keys(appData.showtime).forEach(subCat => {
+        if (appData.showtime[subCat]?.urls) {
+          appData.showtime[subCat].urls.slice(0, 6).forEach(item => { if (item.url) urls.push(item.url); });
+        }
+      });
+    }
 
     return urls.slice(0, 20);
   }, []);

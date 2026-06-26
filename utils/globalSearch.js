@@ -49,13 +49,18 @@ export const searchAllApp = (query) => {
     });
   }
 
-  // Search showtime
-  if (appData.showtime && appData.showtime.urls) {
-    getFilteredUrls(appData.showtime.urls).forEach(item => {
-      if (item && item.title && item.url &&
-          (item.title.toLowerCase().includes(q) ||
-           item.url.toLowerCase().includes(q))) {
-        results.push({ ...item, category: appData.showtime.title });
+  // Search showtime categories
+  if (appData.showtime) {
+    Object.keys(appData.showtime).forEach(subCategory => {
+      const categoryData = appData.showtime[subCategory];
+      if (categoryData && categoryData.urls) {
+        getFilteredUrls(categoryData.urls).forEach(item => {
+          if (item && item.title && item.url &&
+              (item.title.toLowerCase().includes(q) ||
+               item.url.toLowerCase().includes(q))) {
+            results.push({ ...item, category: categoryData.title });
+          }
+        });
       }
     });
   }

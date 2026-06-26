@@ -44,8 +44,11 @@ const findFrensUrl = (title) => {
 };
 
 const findShowtimeUrl = (title) => {
-  const item = appData.showtime.urls.find(u => u.title === title);
-  return item ? item.url : null;
+  for (const subCat of Object.keys(appData.showtime)) {
+    const item = appData.showtime[subCat].urls.find(u => u.title === title);
+    if (item) return item.url;
+  }
+  return null;
 };
 
 function GalleryScreen({ navigation }) {
@@ -155,8 +158,14 @@ function GalleryScreen({ navigation }) {
     }
     
     // Showtime
-    if (appData.showtime && appData.showtime.urls) {
-      setShowtimeItems(getFilteredUrls(appData.showtime.urls).slice(0, 20));
+    if (appData.showtime) {
+      const allShowtime = [];
+      Object.keys(appData.showtime).forEach(subCat => {
+        if (appData.showtime[subCat]?.urls) {
+          allShowtime.push(...getFilteredUrls(appData.showtime[subCat].urls));
+        }
+      });
+      setShowtimeItems(allShowtime.slice(0, 20));
     }
 
     // Priority 1: Home screen visible tiles only
@@ -165,7 +174,15 @@ function GalleryScreen({ navigation }) {
     prefetchItems(brebData.slice(0, 3), 3, true);
     prefetchItems(sauceData.slice(0, 3), 3, true);
     if (appData.frens?.urls) prefetchItems(getFilteredUrls(appData.frens.urls).slice(0, 3), 3, true);
-    if (appData.showtime?.urls) prefetchItems(getFilteredUrls(appData.showtime.urls).slice(0, 3), 3, true);
+    if (appData.showtime) {
+      const allShowtime = [];
+      Object.keys(appData.showtime).forEach(subCat => {
+        if (appData.showtime[subCat]?.urls) {
+          allShowtime.push(...getFilteredUrls(appData.showtime[subCat].urls));
+        }
+      });
+      prefetchItems(allShowtime.slice(0, 3), 3, true);
+    }
     prefetchItems(spotlightData.slice(0, 3), 3, true);
 
     // Priority 2: Background load remaining visible URLs only
@@ -174,7 +191,15 @@ function GalleryScreen({ navigation }) {
     prefetchItems(brebData, 20, false);
     prefetchItems(sauceData, 20, false);
     if (appData.frens?.urls) prefetchItems(getFilteredUrls(appData.frens.urls), 50, false);
-    if (appData.showtime?.urls) prefetchItems(getFilteredUrls(appData.showtime.urls), 50, false);
+    if (appData.showtime) {
+      const allShowtime = [];
+      Object.keys(appData.showtime).forEach(subCat => {
+        if (appData.showtime[subCat]?.urls) {
+          allShowtime.push(...getFilteredUrls(appData.showtime[subCat].urls));
+        }
+      });
+      prefetchItems(allShowtime, 50, false);
+    }
   };
 
   const getAllWebsites = React.useMemo(() => {
@@ -319,9 +344,12 @@ function GalleryScreen({ navigation }) {
   };
 
   const openShowtimeUrl = (title) => {
-    const showtimeItem = appData.showtime.urls.find(item => item.title === title);
-    if (showtimeItem && showtimeItem.url) {
-      navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+    for (const subCat of Object.keys(appData.showtime)) {
+      const showtimeItem = appData.showtime[subCat].urls.find(item => item.title === title);
+      if (showtimeItem && showtimeItem.url) {
+        navigation.navigate('WebView', { url: showtimeItem.url, title: showtimeItem.title });
+        return;
+      }
     }
   };
 

@@ -67,9 +67,13 @@ const collectAllUrls = () => {
       urls.push({ title: item.title, url: item.url, section: 'Frens' });
     });
   }
-  if (appData.showtime && appData.showtime.urls) {
-    appData.showtime.urls.forEach((item) => {
-      urls.push({ title: item.title, url: item.url, section: 'Showtime' });
+  if (appData.showtime) {
+    Object.keys(appData.showtime).forEach(subCat => {
+      if (appData.showtime[subCat]?.urls) {
+        appData.showtime[subCat].urls.forEach((item) => {
+          urls.push({ title: item.title, url: item.url, section: appData.showtime[subCat].title });
+        });
+      }
     });
   }
   return urls;
