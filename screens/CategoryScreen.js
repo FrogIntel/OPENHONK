@@ -187,6 +187,18 @@ const CategoryScreen = ({ route, navigation }) => {
             isNew: !viewed[n.id] || (n.date && new Date(viewed[n.id]) < new Date(n.date)),
           }));
         setNotifUrls(allNotifs);
+
+        const markViewedTimer = setTimeout(async () => {
+          const now = new Date().toISOString();
+          const updatedViewed = { ...viewed };
+          for (const n of allNotifs) {
+            if (n.id) updatedViewed[n.id] = n.date || now;
+          }
+          try {
+            await AsyncStorage.setItem('@notifications_viewed', JSON.stringify(updatedViewed));
+          } catch (e) {}
+        }, 3000);
+        return () => clearTimeout(markViewedTimer);
       });
     } else {
       setNotifUrls(category.urls || []);

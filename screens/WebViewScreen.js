@@ -79,7 +79,7 @@ const WebViewScreen = ({ route, navigation }) => {
                           "try{" +
                           "var raw=atob('" + defaultBookmarks + "');" +
                           "localStorage.setItem('bookmarks',raw);" +
-                          "setTimeout(function(){window.location.reload();},300);" +
+                          "window.ReactNativeWebView.postMessage(JSON.stringify({type:'bookmarks_set'}));" +
                           "}catch(e){console.error('Failed to set bookmarks:',e);}" +
                           "})();"
                         );
@@ -187,8 +187,8 @@ const WebViewScreen = ({ route, navigation }) => {
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
-        cacheEnabled={true}
-        cacheMode="LOAD_DEFAULT"
+        cacheEnabled={!isReelBrowser}
+        cacheMode={isReelBrowser ? 'LOAD_NO_CACHE' : 'LOAD_DEFAULT'}
         mixedContentMode="compatibility"
         thirdPartyCookiesEnabled={true}
         incognito={!isReelBrowser && !currentUrl?.includes('openhonk_home')}
@@ -294,6 +294,13 @@ const WebViewScreen = ({ route, navigation }) => {
           if (isReelBrowser) {
             try {
               const msg = JSON.parse(event.nativeEvent.data);
+              if (msg.type === 'bookmarks_set') {
+                navigation.goBack();
+                setTimeout(() => {
+                  navigation.navigate('WebView', { url: 'file:///android_asset/reel_browser/index.html', title: 'REEL' });
+                }, 300);
+                return;
+              }
               if (msg.type === 'no_bookmarks' && defaultBookmarks) {
                 AsyncStorage.getItem('@reel_bookmarks_prompted').then(prompted => {
                   if (prompted === 'true') return;
@@ -312,7 +319,7 @@ const WebViewScreen = ({ route, navigation }) => {
                               "try{" +
                               "var raw=atob('" + defaultBookmarks + "');" +
                               "localStorage.setItem('bookmarks',raw);" +
-                              "setTimeout(function(){window.location.reload();},300);" +
+                              "window.ReactNativeWebView.postMessage(JSON.stringify({type:'bookmarks_set'}));" +
                               "}catch(e){console.error('Failed to set bookmarks:',e);}" +
                               "})();"
                             );

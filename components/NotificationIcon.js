@@ -66,47 +66,6 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
   }, []);
 
   const handlePress = async () => {
-    const now = new Date().toISOString();
-    try {
-      const viewedRaw = await AsyncStorage.getItem('@notifications_viewed');
-      let viewed = {};
-      try { viewed = JSON.parse(viewedRaw) || {}; } catch (e) {}
-
-      const [stored, dismissedRaw, bookmarksUpdatedRaw] = await Promise.all([
-        AsyncStorage.getItem('@adblock_last_update'),
-        AsyncStorage.getItem('@dismissed_notifications'),
-        AsyncStorage.getItem('@reel_bookmarks_updated'),
-      ]);
-
-      let dismissed = [];
-      try { dismissed = JSON.parse(dismissedRaw) || []; } catch (e) {}
-
-      if (stored && !dismissed.includes('adblock')) {
-        try {
-          const info = JSON.parse(stored);
-          viewed.adblock = info.date || now;
-        } catch (e) {
-          viewed.adblock = now;
-        }
-      }
-
-      if (bookmarksUpdatedRaw && !dismissed.includes('bookmarks')) {
-        try {
-          const bmInfo = JSON.parse(bookmarksUpdatedRaw);
-          viewed.bookmarks = bmInfo.date || now;
-        } catch (e) {
-          viewed.bookmarks = now;
-        }
-      }
-
-      const staticNotifs = (appData.notifications?.urls || []).filter(n => !dismissed.includes(n.id));
-      for (const n of staticNotifs) {
-        if (n.id) viewed[n.id] = n.date || now;
-      }
-
-      await AsyncStorage.setItem('@notifications_viewed', JSON.stringify(viewed));
-      setBadgeCount(0);
-    } catch (e) {}
     onPressRef.current?.();
   };
 

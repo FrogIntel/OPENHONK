@@ -151,6 +151,7 @@ The signed APK will be generated in the build output directory.
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
 - ✅ Browser bookmark extension
+- ⬜ Port to iOS
 - TBC — see Telegram channel for more
 
 ---
