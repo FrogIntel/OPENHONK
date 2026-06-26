@@ -157,155 +157,155 @@ const SideMenu = ({ visible, onClose, navigation }) => {
           <ScrollView style={styles.menuScroll} contentContainerStyle={{ paddingBottom: 100 }}>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('HomeTab'); }}>
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>HOME</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>HOME</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('WebView', { url: 'file:///android_asset/reel_browser/index.html', title: 'REEL' }); }}>
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>REEL</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>REEL</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('BrebTab'); }}>
               <Image source={require('../assets/app3679992_mb_brebit1292284.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>BREB</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>BREB</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('SauceTab'); }}>
               <Image source={require('../assets/app3679992_mb_sauceit1292285.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>SAUCE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SAUCE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('FrensTab'); }}>
               <Image source={require('../assets/frens_icon.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>FRENS</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>FRENS</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('ShowtimeTab'); }}>
               <Image source={require('../assets/showtime_icon.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>SHOWTIME</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SHOWTIME</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Artel.doc'), 'ARTEL.DOC'); }}>
               <FavIcon url={findFrensUrl('Artel.doc')} size={24} />
-              <Text style={styles.menuItemText}>ARTEL.DOC</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>ARTEL.DOC</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Bitchute'), 'BITCHUTE'); }}>
               <FavIcon url={findFrensUrl('Bitchute')} size={24} />
-              <Text style={styles.menuItemText}>BITCHUTE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>BITCHUTE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Censored TV'), 'CENSORED TV'); }}>
               <FavIcon url={findFrensUrl('Censored TV')} size={24} />
-              <Text style={styles.menuItemText}>CENSORED TV</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>CENSORED TV</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('CHD TV'), 'CHD TV'); }}>
               <FavIcon url={findFrensUrl('CHD TV')} size={24} />
-              <Text style={styles.menuItemText}>CHD TV</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>CHD TV</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('ConspyreTV'), 'CONSPYRETV'); }}>
               <FavIcon url={findFrensUrl('ConspyreTV')} size={24} />
-              <Text style={styles.menuItemText}>CONSPYRETV</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>CONSPYRETV</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Cozy.tv'), 'COZY.TV'); }}>
               <FavIcon url={findFrensUrl('Cozy.tv')} size={24} />
-              <Text style={styles.menuItemText}>COZY.TV</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>COZY.TV</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Odysee'), 'ODYSEE'); }}>
               <FavIcon url={findFrensUrl('Odysee')} size={24} />
-              <Text style={styles.menuItemText}>ODYSEE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>ODYSEE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Onevsp'), 'ONEVSP'); }}>
               <Image source={require('../assets/frens_icon.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>ONEVSP</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>ONEVSP</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Rumble'), 'RUMBLE'); }}>
               <FavIcon url={findFrensUrl('Rumble')} size={24} />
-              <Text style={styles.menuItemText}>RUMBLE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>RUMBLE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Truthtide TV'), 'TRUTHTIDE TV'); }}>
               <FavIcon url={findFrensUrl('Truthtide TV')} size={24} />
-              <Text style={styles.menuItemText}>TRUTHTIDE TV</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TRUTHTIDE TV</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Substack'), 'SUBSTACK'); }}>
               <FavIcon url={findFrensUrl('Substack')} size={24} />
-              <Text style={styles.menuItemText}>SUBSTACK</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SUBSTACK</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Thread Reader App'), 'THREAD READER APP'); }}>
               <FavIcon url={findFrensUrl('Thread Reader App')} size={24} />
-              <Text style={styles.menuItemText}>THREAD READER APP</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>THREAD READER APP</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('GETTR'), 'GETTR'); }}>
               <FavIcon url={findFrensUrl('GETTR')} size={24} />
-              <Text style={styles.menuItemText}>GETTR</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>GETTR</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Gab'), 'GAB'); }}>
               <FavIcon url={findFrensUrl('Gab')} size={24} />
-              <Text style={styles.menuItemText}>GAB</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>GAB</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Minds'), 'MINDS'); }}>
               <FavIcon url={findFrensUrl('Minds')} size={24} />
-              <Text style={styles.menuItemText}>MINDS</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>MINDS</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Telegram'), 'TELEGRAM'); }}>
               <FavIcon url={findFrensUrl('Telegram')} size={24} />
-              <Text style={styles.menuItemText}>TELEGRAM</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TELEGRAM</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('The Fox Hole'), 'THE FOX HOLE'); }}>
               <FavIcon url={findFrensUrl('The Fox Hole')} size={24} />
-              <Text style={styles.menuItemText}>THE FOX HOLE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>THE FOX HOLE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Truth Social'), 'TRUTH SOCIAL'); }}>
               <FavIcon url={findFrensUrl('Truth Social')} size={24} />
-              <Text style={styles.menuItemText}>TRUTH SOCIAL</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TRUTH SOCIAL</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('Twitter / X'), 'TWITTER / X'); }}>
               <FavIcon url={findFrensUrl('Twitter / X')} size={24} />
-              <Text style={styles.menuItemText}>TWITTER / X</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TWITTER / X</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Attention Patriots'); }}>
               <FavIcon url={findShowtimeUrl('Attention Patriots')} size={24} />
-              <Text style={styles.menuItemText}>ATTENTION PATRIOTS</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>ATTENTION PATRIOTS</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Becoming Aware'); }}>
               <FavIcon url={findShowtimeUrl('Becoming Aware')} size={24} />
-              <Text style={styles.menuItemText}>BECOMING AWARE</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>BECOMING AWARE</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Final Final Warning'); }}>
               <FavIcon url={findShowtimeUrl('Final Final Warning')} size={24} />
-              <Text style={styles.menuItemText}>FINAL FINAL WARNING</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>FINAL FINAL WARNING</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Great Awakening'); }}>
               <FavIcon url={findShowtimeUrl('Great Awakening')} size={24} />
-              <Text style={styles.menuItemText}>GREAT AWAKENING</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>GREAT AWAKENING</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Scare Event'); }}>
               <FavIcon url={findShowtimeUrl('Scare Event')} size={24} />
-              <Text style={styles.menuItemText}>SCARE EVENT</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SCARE EVENT</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('To the Unvaxxed'); }}>
               <FavIcon url={findShowtimeUrl('To the Unvaxxed')} size={24} />
-              <Text style={styles.menuItemText}>TO THE UNVAXXED</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TO THE UNVAXXED</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Trumps Agenda 47'); }}>
               <FavIcon url={findShowtimeUrl('Trumps Agenda 47')} size={24} />
-              <Text style={styles.menuItemText}>TRUMP'S AGENDA 47</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TRUMP'S AGENDA 47</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openShowtimeUrl('Press Play'); }}>
               <FavIcon url={findShowtimeUrl('Press Play')} size={24} />
-              <Text style={styles.menuItemText}>PRESS PLAY</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>PRESS PLAY</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); openUrl(findFrensUrl('End Of The Internet'), 'END OF THE INTERNET'); }}>
               <FavIcon url={findFrensUrl('End Of The Internet')} size={24} />
-              <Text style={styles.menuItemText}>END OF THE INTERNET</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>END OF THE INTERNET</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('WebView', { url: 'https://github.com/frogintel', title: 'GITHUB' }); }}>
               <FavIcon url="https://github.com/frogintel" size={24} />
-              <Text style={styles.menuItemText}>GITHUB</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>GITHUB</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('WebView', { url: 'https://t.me/openhonk', title: 'TELEGRAM' }); }}>
               <FavIcon url="https://t.me/openhonk" size={24} />
-              <Text style={styles.menuItemText}>TELEGRAM</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TELEGRAM</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('Settings'); }}>
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.menuItemText}>SETTINGS</Text>
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SETTINGS</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 14, borderColor: theme.primaryColor, borderWidth: 1, borderRadius: 16, marginTop: 12 }}

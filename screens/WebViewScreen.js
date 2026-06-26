@@ -35,6 +35,7 @@ const WebViewScreen = ({ route, navigation }) => {
   const [defaultBookmarks, setDefaultBookmarks] = useState(null);
   const [isInsecure, setIsInsecure] = useState(false);
   const [isLocalContent, setIsLocalContent] = useState(url?.startsWith('file://') || false);
+  const [loadProgress, setLoadProgress] = useState(0);
   const isReelBrowser = title === 'REEL' || url?.includes('anitabuidpe') || url?.includes('reel_browser');
 
   useEffect(() => {
@@ -187,8 +188,8 @@ const WebViewScreen = ({ route, navigation }) => {
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
-        cacheEnabled={!isReelBrowser}
-        cacheMode={isReelBrowser ? 'LOAD_NO_CACHE' : 'LOAD_DEFAULT'}
+        cacheEnabled={!isReelBrowser && !isLocalContent}
+        cacheMode={(isReelBrowser || isLocalContent) ? 'LOAD_NO_CACHE' : 'LOAD_DEFAULT'}
         mixedContentMode="compatibility"
         thirdPartyCookiesEnabled={true}
         incognito={!isReelBrowser && !currentUrl?.includes('openhonk_home')}
@@ -212,6 +213,12 @@ const WebViewScreen = ({ route, navigation }) => {
         renderToHardwareTextureAndroid={true}
         overScrollMode="never"
         textZoom={100}
+        onLoadProgress={(event) => {
+          setLoadProgress(event.nativeEvent.progress);
+          if (event.nativeEvent.progress >= 1) {
+            setTimeout(() => setLoadProgress(0), 300);
+          }
+        }}
         onNavigationStateChange={(navState) => {
           setCanGoBack(navState.canGoBack);
           if (navState.url) {
@@ -246,13 +253,30 @@ const WebViewScreen = ({ route, navigation }) => {
             }
             return true;
           }
+          // Open any other scheme externally instead of blocking
+          if (!request.url.startsWith('http://') && !request.url.startsWith('https://') && !request.url.startsWith('file://') && !request.url.startsWith('about:blank') && !request.url.startsWith('blob:') && !request.url.startsWith('data:')) {
+            if (!request.url.startsWith('intent:') && !request.url.startsWith('whatsapp:') && !request.url.startsWith('tg:') && !request.url.startsWith('telegram:') && !request.url.startsWith('tel:') && !request.url.startsWith('mailto:') && !request.url.startsWith('sms:')) {
+              Linking.openURL(request.url).catch(() => {});
+            }
+            return false;
+          }
           // Block unknown schemes
           return false;
         }}
         onOpenWindow={(syntheticEvent) => {
           const { nativeEvent } = syntheticEvent;
-          if (nativeEvent.targetUrl) {
-            setCurrentUrl(nativeEvent.targetUrl);
+          const targetUrl = nativeEvent.targetUrl;
+          if (targetUrl) {
+            if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+              if (isAdDomain(targetUrl)) {
+                return;
+              }
+              Linking.openURL(targetUrl).catch(() => {
+                setCurrentUrl(targetUrl);
+              });
+            } else {
+              Linking.openURL(targetUrl).catch(() => {});
+            }
           }
         }}
         injectedJavaScriptBeforeContentLoaded={isReelBrowser ? `
@@ -396,6 +420,11 @@ const WebViewScreen = ({ route, navigation }) => {
           <Icon name="refresh" size={28} color={theme.primaryColor} />
         </TouchableOpacity>
       </View>
+      {loadProgress > 0 && loadProgress < 1 && (
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${loadProgress * 100}%`, backgroundColor: theme.primaryColor }]} />
+        </View>
+      )}
     </View>
   );
 };
@@ -444,6 +473,19 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+  },
+  progressBarContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    zIndex: 11,
+  },
+  progressBar: {
+    height: 3,
+    borderRadius: 1.5,
   },
   introOverlay: {
     flex: 1,

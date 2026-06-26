@@ -43,7 +43,11 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
         val context = reactApplicationContext
         val intent = Intent(context, BackgroundAudioService::class.java)
         try {
-            context.startForegroundService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
             isServiceRunning = true
             keepWebViewAlive = true
         } catch (e: Exception) {

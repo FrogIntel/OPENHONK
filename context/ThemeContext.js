@@ -89,7 +89,7 @@ const themes = {
     glassColor: '#60FF1744',
     cardBackground: '#300010',
     cardStroke: '#60FFD700',
-    backgroundType: 'scanlines',
+    backgroundType: 'xmbwave',
   },
   emerald: {
     name: 'Toxic Green',
@@ -285,7 +285,7 @@ const themes = {
     glassColor: '#60CC0000',
     cardBackground: '#1A0000',
     cardStroke: '#60CC0000',
-    backgroundType: 'scanlines',
+    backgroundType: 'xmbwave3',
   },
   arcticOps: {
     name: 'Arctic Ops',
@@ -307,7 +307,7 @@ const themes = {
     glassColor: '#60A0C4E8',
     cardBackground: '#2F3D48',
     cardStroke: '#60A0C4E8',
-    backgroundType: 'hexgrid',
+    backgroundType: 'crackedice',
   },
   matrix: {
     name: 'Matrix Code',
@@ -351,6 +351,28 @@ const themes = {
     glassColor: '#60FF00FF',
     cardBackground: '#180025',
     cardStroke: '#60FF00FF',
+    backgroundType: 'matrix',
+  },
+  redMatrix: {
+    name: 'Red Matrix',
+    gradientColors: ['#150000', '#4A0000', '#150000'],
+    gradientLocations: [0, 0.5, 1],
+    gradientStart: { x: 0.5, y: 0 },
+    gradientEnd: { x: 0.5, y: 1 },
+    backgroundColor: '#130000',
+    surfaceColor: '#381818',
+    elevatedColor: '#482020',
+    headerColor: 'transparent',
+    primaryColor: '#FF3333',
+    secondaryColor: '#BF2424',
+    tertiaryColor: '#7F1515',
+    textColor: '#FF3333',
+    textSecondaryColor: '#CC2828',
+    textTertiaryColor: '#661515',
+    dividerColor: '#BF2424',
+    glassColor: '#60FF3333',
+    cardBackground: '#381818',
+    cardStroke: '#60FF3333',
     backgroundType: 'matrix',
   },
 };
@@ -439,7 +461,7 @@ const transitionStyles = StyleSheet.create({
 });
 
 export const ThemeProvider = ({ children }) => {
-  const [themeKey, setThemeKey] = useState('oliveDrag');
+  const [themeKey, setThemeKey] = useState('camoGreen');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

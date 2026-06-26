@@ -99,7 +99,6 @@ export const appData = {
         { title: 'Here Is The Evidence', url: 'https://hereistheevidence.com/' },
         { title: 'How Bad Is My Batch', url: 'https://howbad.info' },
         { title: 'Intel O.D.', url: 'https://intelod.net/' },
-        { title: 'Ivermectin', url: 'https://ivermectin.com/' },
         { title: 'Jesus Film ( 🎥🎬 )', url: 'https://www.jesusfilm.org/watch' },
         { title: 'Jesus Film Project', url: 'https://www.jesusfilm.org' },
         { title: 'Law or Fiction', url: 'https://laworfiction.com/' },
@@ -372,7 +371,6 @@ export const appData = {
         { title: 'Sarah Westall', url: 'https://www.bitchute.com/channel/1Ez5eVnVz1yY' },
         { title: 'SGT Report', url: 'https://www.bitchute.com/channel/nLPcg68RnP97' },
         { title: 'Spaceshot76', url: 'https://www.bitchute.com/channel/lvstqvii0eal' },
-        { title: 'Stroppy Me', url: 'https://www.bitchute.com/channel/M4YtazGIdcI' },
         { title: 'Table of Titans', url: 'https://www.bitchute.com/channel/tableoftitans/' },
         { title: 'TRU Reporting', url: 'https://www.bitchute.com/channel/aaTDlvuIAMBx' },
         { title: 'Truth & Art TV', url: 'https://www.bitchute.com/channel/zF2pCSj7AldT' },
@@ -464,7 +462,8 @@ export const appData = {
   notifications: {
     urls: [
       { id: 1, title: 'Welcome to OPENHONK', url: 'file:///android_asset/openhonk_home/index.html', message: 'Your open-source truth app is ready!', date: new Date().toISOString() },
-      { id: 'new_content_v105', title: 'New Content Added 🎬', url: 'openhonk://new-content', message: 'New documentaries, patriot creators, and more added. Tap to view all new entries!', date: new Date().toISOString() }
+      { id: 'new_content_v105', title: 'New Content Added 🎬', url: 'openhonk://new-content', message: 'New documentaries, patriot creators, and more added. Tap to view all new entries!', date: new Date().toISOString() },
+      { id: 'update_v107', title: 'v1.0.7 Update ✨', url: 'file:///android_asset/openhonk_home/changelog.html', message: 'New Red Matrix theme, PS4/PS3 XMB wave backgrounds (Crimson Tide & Blood Red), cracked ice (Arctic Ops), enhanced radar (Navy Fleet), fading hex grids (Midnight Neon), camo squares (Tactical Black), side menu text matches theme colors, default theme Woodland Camo, new transparent logo replaces text title on all home screens, pulsing glow intensified, loading progress bar, UPDATE NOTIFICATIONS text updated, audio crash fix, ivermectin.com removed, Stroppy Me removed from Patriots.', date: new Date().toISOString() }
     ]
   }
 };
@@ -514,7 +513,6 @@ export const newContent = [
   { title: 'Dustin Nemos', url: 'https://www.bitchute.com/channel/QKL2mVYPDV5u' },
   { title: 'In The Matrix', url: 'https://www.bitchute.com/channel/LYlGuC0RYchh' },
   { title: 'And We Know', url: 'https://www.bitchute.com/channel/1uDxpDogKMs9' },
-  { title: 'Stroppy Me', url: 'https://www.bitchute.com/channel/M4YtazGIdcI' },
   { title: 'Just Informed Talk', url: 'https://www.bitchute.com/channel/zWqrqKTLkhqW' },
   { title: 'Sarah Westall', url: 'https://www.bitchute.com/channel/1Ez5eVnVz1yY' },
   { title: 'TRU Reporting', url: 'https://www.bitchute.com/channel/aaTDlvuIAMBx' },

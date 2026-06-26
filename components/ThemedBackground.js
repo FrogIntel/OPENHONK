@@ -27,6 +27,8 @@ const ThemedBackground = ({ theme, style }) => {
   if (bgType === 'topo') return <TopoBackground theme={theme} style={style} />;
   if (bgType === 'radar') return <RadarBackground theme={theme} style={style} />;
   if (bgType === 'xmbwave') return <XMBWaveBackground theme={theme} style={style} />;
+  if (bgType === 'xmbwave3') return <XMBWave3Background theme={theme} style={style} />;
+  if (bgType === 'crackedice') return <CrackedIceBackground theme={theme} style={style} />;
 
   return <CrossFadeBackground theme={theme} style={style} />;
 };
@@ -127,26 +129,16 @@ const CrossFadeBackground = ({ theme, style }) => {
 
 // ========== CARBON FIBER ==========
 const CarbonBackground = ({ theme, style }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
   const breatheAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
-      Animated.timing(shimmerAnim, {
-        toValue: 1,
-        duration: 8000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-
     Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
         Animated.timing(breatheAnim, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     ).start();
-  }, [shimmerAnim, breatheAnim]);
+  }, [breatheAnim]);
 
   const cells = useMemo(() => {
     const arr = [];
@@ -160,6 +152,40 @@ const CarbonBackground = ({ theme, style }) => {
     }
     return { arr, cols, rows };
   }, []);
+
+  const camoSquares = useMemo(() => {
+    const arr = [];
+    const numSquares = 30;
+    for (let i = 0; i < numSquares; i++) {
+      arr.push({
+        key: i,
+        x: Math.random() * SCREEN_WIDTH,
+        y: Math.random() * SCREEN_HEIGHT,
+        size: 20 + Math.random() * 60,
+        delay: Math.random() * 5000,
+        duration: 3000 + Math.random() * 4000,
+        opacity: 0.02 + Math.random() * 0.06,
+      });
+    }
+    return arr;
+  }, []);
+
+  const camoAnims = useMemo(() => {
+    return camoSquares.map(() => new Animated.Value(0));
+  }, [camoSquares]);
+
+  useEffect(() => {
+    camoAnims.forEach((anim, i) => {
+      const sq = camoSquares[i];
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(sq.delay),
+          Animated.timing(anim, { toValue: 1, duration: sq.duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0, duration: sq.duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      ).start();
+    });
+  }, [camoAnims, camoSquares]);
 
   return (
     <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
@@ -191,35 +217,24 @@ const CarbonBackground = ({ theme, style }) => {
           />
         ))}
       </View>
-      <Animated.View
-        style={[
-          styles.absolute,
-          {
-            opacity: shimmerAnim.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [0, 0.06, 0],
+      {/* Random fading camo squares */}
+      {camoSquares.map((sq, i) => (
+        <Animated.View
+          key={sq.key}
+          style={{
+            position: 'absolute',
+            left: sq.x,
+            top: sq.y,
+            width: sq.size,
+            height: sq.size,
+            backgroundColor: theme.primaryColor,
+            opacity: camoAnims[i].interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, sq.opacity],
             }),
-            transform: [
-              {
-                translateX: shimmerAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-400, 400],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 200,
-          width: 100,
-          backgroundColor: theme.primaryColor,
-          transform: [{ skewX: '-20deg' }],
-        }} />
-      </Animated.View>
+          }}
+        />
+      ))}
     </View>
   );
 };
@@ -412,7 +427,6 @@ const FallingStreak = ({ streak, color }) => {
 // ========== HEX GRID ==========
 const HexGridBackground = ({ theme, style }) => {
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  const sweepAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -421,29 +435,46 @@ const HexGridBackground = ({ theme, style }) => {
         Animated.timing(pulseAnim, { toValue: 0, duration: 2500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     ).start();
-
-    Animated.loop(
-      Animated.timing(sweepAnim, { toValue: 1, duration: 6000, easing: Easing.linear, useNativeDriver: true }),
-    ).start();
-  }, [pulseAnim, sweepAnim]);
+  }, [pulseAnim]);
 
   const hexes = useMemo(() => {
     const arr = [];
-    const hexSize = 35;
+    const hexSize = 30;
     const hexW = hexSize * 1.5;
     const hexH = hexSize * Math.sqrt(3);
-    const cols = 14;
+    const cols = 16;
     const rows = Math.ceil(SCREEN_HEIGHT / hexH) + 2;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const x = c * hexW;
         const y = r * hexH + (c % 2 === 0 ? 0 : hexH / 2);
-        const highlight = Math.random() < 0.08;
-        arr.push({ key: `${r}-${c}`, x, y, highlight });
+        const highlight = Math.random() < 0.12;
+        const fadeDelay = Math.random() * 4000;
+        const fadeDuration = 2000 + Math.random() * 3000;
+        arr.push({ key: `${r}-${c}`, x, y, highlight, fadeDelay, fadeDuration });
       }
     }
     return { hexes: arr, hexW, hexH };
   }, []);
+
+  const fadeAnims = useMemo(() => {
+    return hexes.hexes.map(() => new Animated.Value(0));
+  }, [hexes]);
+
+  useEffect(() => {
+    fadeAnims.forEach((anim, i) => {
+      const hex = hexes.hexes[i];
+      if (hex.highlight) {
+        Animated.loop(
+          Animated.sequence([
+            Animated.delay(hex.fadeDelay),
+            Animated.timing(anim, { toValue: 1, duration: hex.fadeDuration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+            Animated.timing(anim, { toValue: 0, duration: hex.fadeDuration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          ]),
+        ).start();
+      }
+    });
+  }, [fadeAnims, hexes]);
 
   return (
     <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
@@ -460,13 +491,13 @@ const HexGridBackground = ({ theme, style }) => {
           {
             opacity: pulseAnim.interpolate({
               inputRange: [0, 1],
-              outputRange: [0.03, 0.12],
+              outputRange: [0.03, 0.08],
             }),
           },
         ]}
       >
-        {hexes.hexes.map(hex => (
-          <View
+        {hexes.hexes.map((hex, i) => (
+          <Animated.View
             key={hex.key}
             style={{
               position: 'absolute',
@@ -475,38 +506,24 @@ const HexGridBackground = ({ theme, style }) => {
               width: hexes.hexW * 0.85,
               height: hexes.hexH * 0.85,
               borderWidth: 1,
-              borderColor: hex.highlight ? theme.primaryColor : `${theme.primaryColor}50`,
+              borderColor: hex.highlight ? theme.primaryColor : `${theme.primaryColor}40`,
               borderRadius: 4,
               transform: [{ rotate: '30deg' }],
-              backgroundColor: hex.highlight ? `${theme.primaryColor}08` : 'transparent',
+              backgroundColor: hex.highlight
+                ? fadeAnims[i].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['transparent', `${theme.primaryColor}20`],
+                  })
+                : 'transparent',
+              opacity: hex.highlight
+                ? fadeAnims[i].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.3, 1],
+                  })
+                : 0.5,
             }}
           />
         ))}
-      </Animated.View>
-      <Animated.View
-        style={[
-          styles.absolute,
-          {
-            opacity: 0.05,
-            transform: [
-              {
-                translateX: sweepAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-200, SCREEN_WIDTH + 100],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 100,
-          width: 80,
-          backgroundColor: theme.primaryColor,
-        }} />
       </Animated.View>
     </View>
   );
@@ -697,30 +714,50 @@ const TopoBackground = ({ theme, style }) => {
 // ========== RADAR SWEEP ==========
 const RadarBackground = ({ theme, style }) => {
   const sweepAnim = useRef(new Animated.Value(0)).current;
-  const blipAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
-      Animated.timing(sweepAnim, { toValue: 1, duration: 3500, easing: Easing.linear, useNativeDriver: true }),
+      Animated.timing(sweepAnim, { toValue: 1, duration: 4000, easing: Easing.linear, useNativeDriver: true }),
     ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(blipAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.delay(3200),
-        Animated.timing(blipAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
-      ]),
-    ).start();
-  }, [sweepAnim, blipAnim]);
+  }, [sweepAnim]);
 
   const rings = useMemo(() => [0.15, 0.3, 0.45, 0.6, 0.75, 0.9], []);
+
   const blips = useMemo(() => {
-    return Array.from({ length: 12 }, () => ({
-      x: 15 + Math.random() * 70,
-      y: 15 + Math.random() * 70,
-      size: 2 + Math.random() * 5,
-    }));
+    return Array.from({ length: 15 }, () => {
+      const angle = Math.random() * 360;
+      const dist = 0.15 + Math.random() * 0.7;
+      const x = 50 + Math.cos(angle * Math.PI / 180) * dist * 50;
+      const y = 50 + Math.sin(angle * Math.PI / 180) * dist * 50;
+      return {
+        x,
+        y,
+        size: 2 + Math.random() * 4,
+        angle: (angle + 360) % 360,
+        pingDuration: 800 + Math.random() * 600,
+      };
+    });
   }, []);
+
+  const blipAnims = useMemo(() => {
+    return blips.map(() => new Animated.Value(0));
+  }, [blips]);
+
+  const sweepDuration = 4000;
+
+  useEffect(() => {
+    blips.forEach((blip, i) => {
+      const triggerDelay = (blip.angle / 360) * sweepDuration;
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(triggerDelay),
+          Animated.timing(blipAnims[i], { toValue: 1, duration: 150, useNativeDriver: true }),
+          Animated.timing(blipAnims[i], { toValue: 0, duration: blip.pingDuration, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+          Animated.delay(sweepDuration - triggerDelay - 150 - blip.pingDuration),
+        ]),
+      ).start();
+    });
+  }, [blipAnims, blips]);
 
   return (
     <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
@@ -764,6 +801,7 @@ const RadarBackground = ({ theme, style }) => {
           width: 1,
           backgroundColor: `${theme.primaryColor}15`,
         }} />
+        {/* Blips that light up as sweep passes */}
         {blips.map((blip, i) => (
           <Animated.View
             key={i}
@@ -775,19 +813,28 @@ const RadarBackground = ({ theme, style }) => {
               height: blip.size,
               borderRadius: blip.size,
               backgroundColor: theme.primaryColor,
-              opacity: blipAnim.interpolate({
+              opacity: blipAnims[i].interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.9],
+              }),
+              transform: [{
+                scale: blipAnims[i].interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.5, 2.5],
+                }),
+              }],
+              shadowColor: theme.primaryColor,
+              shadowOffset: { width: 0, height: 0 },
+              shadowRadius: 4,
+              shadowOpacity: blipAnims[i].interpolate({
                 inputRange: [0, 1],
                 outputRange: [0, 0.8],
               }),
-              transform: [{
-                scale: blipAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.5, 2],
-                }),
-              }],
+              elevation: 2,
             }}
           />
         ))}
+        {/* Rotating sweep line */}
         <View
           style={{
             position: 'absolute',
@@ -804,6 +851,35 @@ const RadarBackground = ({ theme, style }) => {
               width: '100%',
               height: '100%',
               backgroundColor: `${theme.primaryColor}30`,
+              transform: [
+                {
+                  rotate: sweepAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg'],
+                  }),
+                },
+              ],
+              transformOrigin: 'left center',
+            }}
+          />
+        </View>
+        {/* Sweep trail gradient */}
+        <View
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '45%',
+            height: 60,
+            overflow: 'hidden',
+            transform: [{ translateY: -30 }],
+          }}
+        >
+          <Animated.View
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: `${theme.primaryColor}08`,
               transform: [
                 {
                   rotate: sweepAnim.interpolate({
@@ -833,16 +909,17 @@ const RadarBackground = ({ theme, style }) => {
   );
 };
 
-// ========== XMB WAVE (PlayStation style) ==========
+// ========== XMB WAVE (PlayStation style - highly detailed) ==========
 const XMBWaveBackground = ({ theme, style }) => {
   const waveAnim = useRef(new Animated.Value(0)).current;
   const particleAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(waveAnim, {
         toValue: 1,
-        duration: 8000,
+        duration: 10000,
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }),
@@ -851,25 +928,37 @@ const XMBWaveBackground = ({ theme, style }) => {
     Animated.loop(
       Animated.timing(particleAnim, {
         toValue: 1,
-        duration: 12000,
+        duration: 15000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
     ).start();
-  }, [waveAnim, particleAnim]);
+
+    Animated.loop(
+      Animated.timing(glowAnim, {
+        toValue: 1,
+        duration: 6000,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+    ).start();
+  }, [waveAnim, particleAnim, glowAnim]);
 
   const waves = useMemo(() => {
     const arr = [];
-    const numWaves = 6;
+    const numWaves = 10;
     for (let i = 0; i < numWaves; i++) {
+      const depth = i / numWaves;
       arr.push({
         key: i,
-        amplitude: 30 + Math.random() * 50,
-        frequency: 0.008 + Math.random() * 0.006,
+        amplitude: 25 + Math.random() * 70,
+        frequency: 0.006 + Math.random() * 0.008,
         phase: Math.random() * Math.PI * 2,
-        yOffset: 0.15 + (i / numWaves) * 0.7,
-        opacity: 0.15 + (i / numWaves) * 0.25,
-        strokeWidth: 1 + (i % 2),
+        phase2: Math.random() * Math.PI * 2,
+        yOffset: 0.1 + depth * 0.8,
+        opacity: 0.08 + depth * 0.3,
+        strokeWidth: 0.5 + (1 - depth) * 1.5,
+        parallax: 0.3 + depth * 0.7,
       });
     }
     return arr;
@@ -877,20 +966,23 @@ const XMBWaveBackground = ({ theme, style }) => {
 
   const particles = useMemo(() => {
     const arr = [];
-    const numParticles = 40;
+    const numParticles = 80;
     for (let i = 0; i < numParticles; i++) {
       arr.push({
         key: i,
         startX: Math.random() * SCREEN_WIDTH,
         y: Math.random() * SCREEN_HEIGHT,
-        size: 1 + Math.random() * 3,
-        speed: 0.3 + Math.random() * 0.7,
-        waveIdx: Math.floor(Math.random() * 6),
-        opacity: 0.3 + Math.random() * 0.5,
+        size: 0.5 + Math.random() * 3.5,
+        speed: 0.2 + Math.random() * 0.8,
+        waveIdx: Math.floor(Math.random() * 10),
+        opacity: 0.2 + Math.random() * 0.6,
+        glow: Math.random() < 0.3,
       });
     }
     return arr;
   }, []);
+
+  const STEP = 3;
 
   return (
     <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
@@ -901,6 +993,31 @@ const XMBWaveBackground = ({ theme, style }) => {
         end={theme.gradientEnd}
         style={styles.absolute}
       />
+      {/* Central radial glow */}
+      <Animated.View
+        style={[
+          styles.absolute,
+          {
+            opacity: glowAnim.interpolate({
+              inputRange: [0, 0.5, 1],
+              outputRange: [0.04, 0.1, 0.04],
+            }),
+          },
+        ]}
+      >
+        <View
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: SCREEN_WIDTH * 1.2,
+            height: SCREEN_WIDTH * 1.2,
+            borderRadius: SCREEN_WIDTH * 0.6,
+            backgroundColor: theme.primaryColor,
+            transform: [{ translateX: -SCREEN_WIDTH * 0.6 }, { translateY: -SCREEN_WIDTH * 0.6 }],
+          }}
+        />
+      </Animated.View>
       {/* Wave layers */}
       {waves.map(wave => (
         <Animated.View
@@ -910,24 +1027,25 @@ const XMBWaveBackground = ({ theme, style }) => {
             {
               opacity: waveAnim.interpolate({
                 inputRange: [0, 0.5, 1],
-                outputRange: [wave.opacity * 0.6, wave.opacity, wave.opacity * 0.6],
+                outputRange: [wave.opacity * 0.5, wave.opacity, wave.opacity * 0.5],
               }),
               transform: [
                 {
                   translateY: waveAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [-10, 10],
+                    outputRange: [-15 * wave.parallax, 15 * wave.parallax],
                   }),
                 },
               ],
             },
           ]}
         >
-          {Array.from({ length: Math.ceil(SCREEN_WIDTH / 4) + 8 }, (_, x) => {
-            const px = x * 4;
+          {Array.from({ length: Math.ceil(SCREEN_WIDTH / STEP) + 8 }, (_, x) => {
+            const px = x * STEP;
             const py = SCREEN_HEIGHT * wave.yOffset
               + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude
-              + Math.sin(px * wave.frequency * 2.3 + wave.phase * 1.5) * (wave.amplitude * 0.3);
+              + Math.sin(px * wave.frequency * 2.3 + wave.phase2) * (wave.amplitude * 0.35)
+              + Math.sin(px * wave.frequency * 0.5 + wave.phase * 0.7) * (wave.amplitude * 0.2);
             return (
               <View
                 key={x}
@@ -935,11 +1053,11 @@ const XMBWaveBackground = ({ theme, style }) => {
                   position: 'absolute',
                   left: px,
                   top: py,
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
+                  width: STEP,
+                  height: STEP,
+                  borderRadius: STEP / 2,
                   backgroundColor: theme.primaryColor,
-                  opacity: 0.6,
+                  opacity: 0.5 + wave.parallax * 0.3,
                 }}
               />
             );
@@ -984,17 +1102,151 @@ const XMBWaveBackground = ({ theme, style }) => {
                 height: p.size,
                 borderRadius: p.size,
                 backgroundColor: theme.primaryColor,
+                opacity: p.glow ? 0.9 : 0.6,
+                shadowColor: theme.primaryColor,
+                shadowOffset: { width: 0, height: 0 },
+                shadowRadius: p.glow ? 6 : 0,
+                shadowOpacity: p.glow ? 0.8 : 0,
+                elevation: p.glow ? 3 : 0,
               }}
             />
           </Animated.View>
         );
       })}
+    </View>
+  );
+};
+
+// ========== XMB WAVE 3 (PS3 style - 4 overlapping waves + orbs + lines) ==========
+const XMBWave3Background = ({ theme, style }) => {
+  const waveAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const lineAnim = useRef(new Animated.Value(0)).current;
+
+  // 5 speed-tier animations for seamless orb wrapping
+  const tierAnims = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  const tierDurations = [8000, 12000, 16000, 21000, 27000];
+
+  useEffect(() => {
+    // Wave: seamless 0→1→0 round trip (no jump on loop)
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(waveAnim, { toValue: 1, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(waveAnim, { toValue: 0, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Glow: seamless 0→1→0 round trip
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Line fade: seamless 0→1→0 round trip
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(lineAnim, { toValue: 1, duration: 4500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(lineAnim, { toValue: 0, duration: 4500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Each tier: 0→1 linear loop, orbs travel exactly SCREEN_WIDTH+60
+    tierAnims.forEach((anim, i) => {
+      Animated.loop(
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: tierDurations[i],
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ).start();
+    });
+  }, [waveAnim, glowAnim, lineAnim, tierAnims]);
+
+  const waves = useMemo(() => {
+    const arr = [];
+    const numWaves = 4;
+    for (let i = 0; i < numWaves; i++) {
+      const depth = i / numWaves;
+      arr.push({
+        key: i,
+        amplitude: 40 + Math.random() * 50,
+        frequency: 0.003 + Math.random() * 0.005,
+        phase: Math.random() * Math.PI * 2,
+        phase2: Math.random() * Math.PI * 2,
+        yOffset: 0.15 + depth * 0.7,
+        opacity: 0.15 + depth * 0.25,
+        parallax: 0.3 + depth * 0.7,
+      });
+    }
+    return arr;
+  }, []);
+
+  const orbs = useMemo(() => {
+    const arr = [];
+    const numOrbs = 120;
+    for (let i = 0; i < numOrbs; i++) {
+      const waveIdx = Math.floor(Math.random() * 4);
+      const roll = Math.random();
+      let styleType = 'solid';
+      if (roll < 0.2) styleType = 'glowing';
+      else if (roll < 0.45) styleType = 'stroked';
+      else if (roll < 0.65) styleType = 'faint';
+      arr.push({
+        key: i,
+        startX: Math.random() * (SCREEN_WIDTH + 60) - 30,
+        tier: Math.floor(Math.random() * 5),
+        waveIdx,
+        size: 1 + Math.random() * 5,
+        opacity: 0.1 + Math.random() * 0.85,
+        styleType,
+        verticalDrift: (Math.random() - 0.5) * 60,
+        pulseOffset: Math.random() * Math.PI * 2,
+      });
+    }
+    return arr;
+  }, []);
+
+  const lines = useMemo(() => {
+    const arr = [];
+    const numLines = 20;
+    for (let i = 0; i < numLines; i++) {
+      const o1 = Math.floor(Math.random() * 120);
+      const o2 = Math.floor(Math.random() * 120);
+      if (o1 !== o2) {
+        arr.push({ key: i, o1, o2, opacity: 0.05 + Math.random() * 0.1 });
+      }
+    }
+    return arr;
+  }, []);
+
+  const STEP = 2;
+  const TRAVEL = SCREEN_WIDTH + 60;
+
+  return (
+    <View style={[styles.absolute, { backgroundColor: theme.backgroundColor, overflow: 'hidden' }, style]}>
+      <LinearGradient
+        colors={theme.gradientColors}
+        locations={theme.gradientLocations}
+        start={theme.gradientStart}
+        end={theme.gradientEnd}
+        style={styles.absolute}
+      />
       {/* Central glow */}
       <Animated.View
         style={[
           styles.absolute,
           {
-            opacity: waveAnim.interpolate({
+            opacity: glowAnim.interpolate({
               inputRange: [0, 0.5, 1],
               outputRange: [0.03, 0.08, 0.03],
             }),
@@ -1006,14 +1258,351 @@ const XMBWaveBackground = ({ theme, style }) => {
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: SCREEN_WIDTH * 0.8,
-            height: SCREEN_WIDTH * 0.8,
-            borderRadius: SCREEN_WIDTH * 0.4,
+            width: SCREEN_WIDTH * 1.5,
+            height: SCREEN_WIDTH * 1.5,
+            borderRadius: SCREEN_WIDTH * 0.75,
             backgroundColor: theme.primaryColor,
-            transform: [{ translateX: -SCREEN_WIDTH * 0.4 }, { translateY: -SCREEN_WIDTH * 0.4 }],
+            transform: [{ translateX: -SCREEN_WIDTH * 0.75 }, { translateY: -SCREEN_WIDTH * 0.75 }],
           }}
         />
       </Animated.View>
+      {/* 4 overlapping vector wave lines */}
+      {waves.map(wave => (
+        <Animated.View
+          key={wave.key}
+          style={[
+            styles.absolute,
+            {
+              opacity: waveAnim.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [wave.opacity * 0.4, wave.opacity, wave.opacity * 0.4],
+              }),
+              transform: [
+                {
+                  translateY: waveAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-12 * wave.parallax, 12 * wave.parallax],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          {Array.from({ length: Math.ceil(SCREEN_WIDTH / STEP) + 8 }, (_, x) => {
+            const px = x * STEP;
+            const py = SCREEN_HEIGHT * wave.yOffset
+              + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude
+              + Math.sin(px * wave.frequency * 1.7 + wave.phase2) * (wave.amplitude * 0.3)
+              + Math.sin(px * wave.frequency * 0.5 + wave.phase * 0.7) * (wave.amplitude * 0.15);
+            return (
+              <View
+                key={x}
+                style={{
+                  position: 'absolute',
+                  left: px,
+                  top: py,
+                  width: STEP,
+                  height: 1,
+                  backgroundColor: theme.primaryColor,
+                  opacity: 0.6 + wave.parallax * 0.3,
+                }}
+              />
+            );
+          })}
+        </Animated.View>
+      ))}
+      {/* Static connecting lines that fade in/out */}
+      {lines.map(line => {
+        const o1 = orbs[line.o1];
+        const o2 = orbs[line.o2];
+        const wave1 = waves[o1.waveIdx];
+        const wave2 = waves[o2.waveIdx];
+        const p1x = o1.startX;
+        const p1y = SCREEN_HEIGHT * wave1.yOffset + Math.sin(p1x * wave1.frequency + wave1.phase) * wave1.amplitude;
+        const p2x = o2.startX;
+        const p2y = SCREEN_HEIGHT * wave2.yOffset + Math.sin(p2x * wave2.frequency + wave2.phase) * wave2.amplitude;
+        const dx = p2x - p1x;
+        const dy = p2y - p1y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 200) return null;
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        return (
+          <Animated.View
+            key={line.key}
+            style={{
+              position: 'absolute',
+              left: p1x,
+              top: p1y,
+              width: len,
+              height: 0.5,
+              backgroundColor: theme.primaryColor,
+              opacity: lineAnim.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [line.opacity * 0.3, line.opacity, line.opacity * 0.3],
+              }),
+              transform: [{ rotate: `${angle}deg` }],
+              transformOrigin: 'left center',
+            }}
+          />
+        );
+      })}
+      {/* Orbs - each tier travels exactly TRAVEL pixels for seamless wrap */}
+      {orbs.map(orb => {
+        const wave = waves[orb.waveIdx];
+        const tierAnim = tierAnims[orb.tier];
+        return (
+          <Animated.View
+            key={orb.key}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              opacity: tierAnim.interpolate({
+                inputRange: [0, 0.1, 0.85, 1],
+                outputRange: [0, orb.opacity, orb.opacity, 0],
+              }),
+              transform: [
+                {
+                  translateX: tierAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [orb.startX, orb.startX + TRAVEL],
+                  }),
+                },
+                {
+                  translateY: waveAnim.interpolate({
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [
+                      SCREEN_HEIGHT * wave.yOffset
+                        + Math.sin(orb.startX * wave.frequency + wave.phase) * wave.amplitude
+                        + orb.verticalDrift * Math.sin(orb.pulseOffset),
+                      SCREEN_HEIGHT * wave.yOffset
+                        + Math.sin((orb.startX + TRAVEL * 0.5) * wave.frequency + wave.phase) * wave.amplitude
+                        + orb.verticalDrift * Math.sin(Math.PI + orb.pulseOffset),
+                      SCREEN_HEIGHT * wave.yOffset
+                        + Math.sin((orb.startX + TRAVEL) * wave.frequency + wave.phase) * wave.amplitude
+                        + orb.verticalDrift * Math.sin(Math.PI * 2 + orb.pulseOffset),
+                    ],
+                  }),
+                },
+              ],
+            }}
+          >
+            <View
+              style={
+                orb.styleType === 'stroked'
+                  ? {
+                      width: orb.size,
+                      height: orb.size,
+                      borderRadius: orb.size,
+                      borderWidth: 1,
+                      borderColor: theme.primaryColor,
+                      backgroundColor: 'transparent',
+                    }
+                  : orb.styleType === 'glowing'
+                  ? {
+                      width: orb.size,
+                      height: orb.size,
+                      borderRadius: orb.size,
+                      backgroundColor: theme.primaryColor,
+                      shadowColor: theme.primaryColor,
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowRadius: 16,
+                      shadowOpacity: 1,
+                      elevation: 6,
+                    }
+                  : orb.styleType === 'faint'
+                  ? {
+                      width: orb.size,
+                      height: orb.size,
+                      borderRadius: orb.size,
+                      backgroundColor: `${theme.primaryColor}60`,
+                    }
+                  : {
+                      width: orb.size,
+                      height: orb.size,
+                      borderRadius: orb.size,
+                      backgroundColor: theme.primaryColor,
+                      shadowColor: theme.primaryColor,
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowRadius: 3,
+                      shadowOpacity: 0.4,
+                      elevation: 1,
+                    }
+              }
+            />
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+};
+
+// ========== CRACKED ICE (Arctic Ops) ==========
+const generateCrackPattern = (seed) => {
+  const cracks = [];
+  const numMainCracks = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < numMainCracks; i++) {
+    const startX = Math.random() * SCREEN_WIDTH;
+    const startY = Math.random() * SCREEN_HEIGHT;
+    const segments = [];
+    let cx = startX;
+    let cy = startY;
+    const numSegs = 4 + Math.floor(Math.random() * 5);
+    let angle = Math.random() * Math.PI * 2;
+    for (let s = 0; s < numSegs; s++) {
+      angle += (Math.random() - 0.5) * 1.2;
+      const len = 30 + Math.random() * 80;
+      const nx = cx + Math.cos(angle) * len;
+      const ny = cy + Math.sin(angle) * len;
+      segments.push({ x1: cx, y1: cy, x2: nx, y2: ny });
+      cx = nx;
+      cy = ny;
+      // Branch occasionally
+      if (Math.random() < 0.3 && s < numSegs - 1) {
+        const branchAngle = angle + (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.8);
+        const branchLen = 20 + Math.random() * 50;
+        const bx = cx + Math.cos(branchAngle) * branchLen;
+        const by = cy + Math.sin(branchAngle) * branchLen;
+        segments.push({ x1: cx, y1: cy, x2: bx, y2: by, isBranch: true });
+      }
+    }
+    cracks.push({ key: `${seed}-${i}`, segments });
+  }
+  return cracks;
+};
+
+const CrackLayer = ({ cracks, color, animVal, baseOpacity }) => {
+  return (
+    <Animated.View
+      style={[
+        styles.absolute,
+        {
+          opacity: animVal.interpolate({
+            inputRange: [0, 0.4, 0.6, 1],
+            outputRange: [0, baseOpacity, baseOpacity, 0],
+          }),
+        },
+      ]}
+    >
+      {cracks.map(crack =>
+        crack.segments.map((seg, si) => {
+          const dx = seg.x2 - seg.x1;
+          const dy = seg.y2 - seg.y1;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          return (
+            <View
+              key={`${crack.key}-${si}`}
+              style={{
+                position: 'absolute',
+                left: seg.x1,
+                top: seg.y1,
+                width: len,
+                height: seg.isBranch ? 0.8 : 1.5,
+                backgroundColor: color,
+                opacity: seg.isBranch ? 0.5 : 0.8,
+                transform: [{ rotate: `${angle}deg` }],
+                transformOrigin: 'left center',
+              }}
+            />
+          );
+        })
+      )}
+    </Animated.View>
+  );
+};
+
+const CrackedIceBackground = ({ theme, style }) => {
+  const fadeAnim1 = useRef(new Animated.Value(0)).current;
+  const fadeAnim2 = useRef(new Animated.Value(0)).current;
+  const breatheAnim = useRef(new Animated.Value(0)).current;
+  const [patternIdx, setPatternIdx] = useState(0);
+
+  const patterns = useMemo(() => {
+    return [
+      generateCrackPattern(0),
+      generateCrackPattern(1),
+      generateCrackPattern(2),
+    ];
+  }, []);
+
+  useEffect(() => {
+    const cycleDuration = 8000;
+    // Pattern 1 fades in then out
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim1, { toValue: 1, duration: cycleDuration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(fadeAnim1, { toValue: 0, duration: cycleDuration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Pattern 2 offset by half cycle
+    Animated.loop(
+      Animated.sequence([
+        Animated.delay(cycleDuration / 2),
+        Animated.timing(fadeAnim2, { toValue: 1, duration: cycleDuration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(fadeAnim2, { toValue: 0, duration: cycleDuration / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, { toValue: 1, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 0, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    ).start();
+
+    // Cycle pattern index for variety
+    const interval = setInterval(() => {
+      setPatternIdx(prev => (prev + 1) % 3);
+    }, cycleDuration);
+    return () => clearInterval(interval);
+  }, [fadeAnim1, fadeAnim2, breatheAnim]);
+
+  // Use patternIdx to rotate which patterns show
+  const patternA = patterns[patternIdx % 3];
+  const patternB = patterns[(patternIdx + 1) % 3];
+
+  return (
+    <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
+      <Animated.View style={[styles.absolute, { opacity: breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.8] }) }]}>
+        <LinearGradient
+          colors={theme.gradientColors}
+          locations={theme.gradientLocations}
+          start={theme.gradientStart}
+          end={theme.gradientEnd}
+          style={styles.absolute}
+        />
+      </Animated.View>
+      {/* Subtle ice glow */}
+      <Animated.View
+        style={[
+          styles.absolute,
+          {
+            opacity: breatheAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.02, 0.05],
+            }),
+          },
+        ]}
+      >
+        <View
+          style={{
+            position: 'absolute',
+            top: '30%',
+            left: '50%',
+            width: SCREEN_WIDTH * 0.9,
+            height: SCREEN_WIDTH * 0.9,
+            borderRadius: SCREEN_WIDTH * 0.45,
+            backgroundColor: theme.primaryColor,
+            transform: [{ translateX: -SCREEN_WIDTH * 0.45 }, { translateY: -SCREEN_WIDTH * 0.45 }],
+          }}
+        />
+      </Animated.View>
+      {/* Cracked ice pattern A - fading in/out */}
+      <CrackLayer cracks={patternA} color={theme.primaryColor} animVal={fadeAnim1} baseOpacity={0.6} />
+      {/* Cracked ice pattern B - offset fade */}
+      <CrackLayer cracks={patternB} color={theme.primaryColor} animVal={fadeAnim2} baseOpacity={0.5} />
     </View>
   );
 };
