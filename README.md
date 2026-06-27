@@ -21,7 +21,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <div align="center">
 
-<img src="assets/screenshots/Screenshot_20260627-153705.png" width="270" alt="OPENHONK Home Screen" />
+<img src="assets/screenshots/Screenshot_20260627-154157.png" width="270" alt="OPENHONK Home Screen" />
 
 </div>
 
