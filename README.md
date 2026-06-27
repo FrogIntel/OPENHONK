@@ -21,7 +21,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <div align="center">
 
-<img src="assets/screenshots/Screenshot_20260624-000842.png" width="270" alt="OPENHONK Home Screen" />
+<img src="assets/screenshots/Screenshot_20260627-153705.png" width="270" alt="OPENHONK Home Screen" />
 
 </div>
 
@@ -62,22 +62,58 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <table>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" /></td>
+<td align="center"><b>Intro Walkthrough</b></td>
+<td align="center"><b>Intro Walkthrough (cont.)</b></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260626-222230.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260626-222241.png" width="200" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" /></td>
+<td align="center"><b>Home Screen</b></td>
+<td align="center"><b>Side Menu</b></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-153705.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-153734.png" width="200" /></td>
+</tr>
+<tr>
+<td align="center"><b>Breb — News & Alt Media</b></td>
+<td align="center"><b>Sauce — Research & Truth Sources</b></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260627-153800.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-153818.png" width="200" /></td>
+</tr>
+<tr>
+<td align="center"><b>Frens — Social Platforms</b></td>
+<td align="center"><b>Showtime — Video Platforms</b></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260627-153844.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-153852.png" width="200" /></td>
+</tr>
+<tr>
+<td align="center"><b>Showtime — Subcategory</b></td>
+<td align="center"><b>Content View</b></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260627-153856.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-153909.png" width="200" /></td>
+</tr>
+<tr>
+<td align="center"><b>Content View (cont.)</b></td>
+<td align="center"><b>Changelog</b></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260627-153945.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260627-154039.png" width="200" /></td>
+</tr>
+<tr>
+<td align="center"><b>Full Screen Content</b></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/Screenshot_20260627-154157.png" width="200" /></td>
 </tr>
 </table>
 
@@ -164,6 +200,7 @@ The signed APK will be generated in the build output directory.
 - Some content used in the app might not reflect the developers' views
 - Do not use this app for your dopamine hits
 - Recommended for 18+ use
+- Caution: Some content may trigger epilepsy — viewer discretion advised
 
 ---
 
