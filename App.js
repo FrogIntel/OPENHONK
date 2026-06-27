@@ -130,7 +130,7 @@ function MainTabs() {
           headerShown: false,
           sceneStyle: { backgroundColor: 'transparent' },
           tabBarStyle: {
-            backgroundColor: theme.backgroundColor,
+            backgroundColor: `${theme.backgroundColor}CC`,
             borderTopColor: theme.primaryColor,
             borderTopWidth: 1,
           },
