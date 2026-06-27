@@ -151,7 +151,6 @@ The signed APK will be generated in the build output directory.
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
 - ✅ Browser bookmark extension
-- ⬜ Port to iOS
 - TBC — see Telegram channel for more
 
 ---
@@ -170,9 +169,7 @@ The signed APK will be generated in the build output directory.
 
 ## 🤝 Help Spread Awareness
 
-OPENHONK funding is out of pocket. It's not people-funded, nor will it ask for donations. But we will ask: if you wish to share our business cards around, feel free to download and print them.
-
-> Download the front of the card by downloading the banner at the top of the GitHub page.
+OPENHONK funding is out of pocket. It's not people-funded, nor will it ask for donations. But we will ask: if you wish to share the OPENHONK MEME around, feel free to download and print them or share.
 
 ---
 
@@ -222,7 +219,7 @@ Followed by the head dev for many years who witnessed the shadowbanning of this 
 - Devin AI
 
 **Countries that assisted development:**
-UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australia · France · Germany · India · Russia
+UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australia · France · Germany · India · Russia - More
 
 ---
 
