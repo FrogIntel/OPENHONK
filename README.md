@@ -62,55 +62,28 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <table>
 <tr>
-<td align="center"><b>Intro Walkthrough</b></td>
-<td align="center"><b>Intro Walkthrough (cont.)</b></td>
-</tr>
-<tr>
 <td><img src="assets/screenshots/Screenshot_20260626-222230.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260626-222241.png" width="200" /></td>
-</tr>
-<tr>
-<td align="center"><b>Home Screen</b></td>
-<td align="center"><b>Side Menu</b></td>
 </tr>
 <tr>
 <td><img src="assets/screenshots/Screenshot_20260627-153705.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260627-153734.png" width="200" /></td>
 </tr>
 <tr>
-<td align="center"><b>Breb — News & Alt Media</b></td>
-<td align="center"><b>Sauce — Research & Truth Sources</b></td>
-</tr>
-<tr>
 <td><img src="assets/screenshots/Screenshot_20260627-153800.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260627-153818.png" width="200" /></td>
-</tr>
-<tr>
-<td align="center"><b>Frens — Social Platforms</b></td>
-<td align="center"><b>Showtime — Video Platforms</b></td>
 </tr>
 <tr>
 <td><img src="assets/screenshots/Screenshot_20260627-153844.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260627-153852.png" width="200" /></td>
 </tr>
 <tr>
-<td align="center"><b>Showtime — Subcategory</b></td>
-<td align="center"><b>Content View</b></td>
-</tr>
-<tr>
 <td><img src="assets/screenshots/Screenshot_20260627-153856.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260627-153909.png" width="200" /></td>
 </tr>
 <tr>
-<td align="center"><b>Content View (cont.)</b></td>
-<td align="center"><b>Changelog</b></td>
-</tr>
-<tr>
 <td><img src="assets/screenshots/Screenshot_20260627-153945.png" width="200" /></td>
 <td><img src="assets/screenshots/Screenshot_20260627-154039.png" width="200" /></td>
-</tr>
-<tr>
-<td align="center"><b>Full Screen Content</b></td>
 </tr>
 <tr>
 <td><img src="assets/screenshots/Screenshot_20260627-154157.png" width="200" /></td>
