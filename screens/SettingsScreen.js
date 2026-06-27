@@ -162,11 +162,15 @@ const SettingsScreen = ({ navigation }) => {
 
   const [storeScreenshots, setStoreScreenshotsState] = useState(false);
   const [cacheCount, setCacheCount] = useState(0);
+  const [cookieReject, setCookieRejectState] = useState(false);
 
   React.useEffect(() => {
     initStoreScreenshots().then(() => {
       setStoreScreenshotsState(isStoreScreenshotsEnabled());
       setCacheCount(getCacheStats().count);
+    });
+    AsyncStorage.getItem('@cookie_reject_enabled').then(val => {
+      setCookieRejectState(val === 'true');
     });
   }, []);
 
@@ -176,6 +180,11 @@ const SettingsScreen = ({ navigation }) => {
     if (!enabled) {
       setCacheCount(0);
     }
+  };
+
+  const handleToggleCookieReject = (enabled) => {
+    setCookieRejectState(enabled);
+    AsyncStorage.setItem('@cookie_reject_enabled', enabled ? 'true' : 'false');
   };
 
   const handleClearScreenshotCache = () => {
@@ -465,6 +474,9 @@ const SettingsScreen = ({ navigation }) => {
     try {
       for (const domain of selectedCookies) {
         await clearCookieDomain(domain);
+        if (domain.includes('rumble.com')) {
+          await AsyncStorage.removeItem('@rumble_cookies');
+        }
       }
       await loadCookieDomains();
     } catch (e) {
@@ -490,6 +502,7 @@ const SettingsScreen = ({ navigation }) => {
             setClearingCookies(true);
             try {
               await clearAllCookies();
+              await AsyncStorage.removeItem('@rumble_cookies');
               await loadCookieDomains();
             } catch (e) {
               console.error('Error clearing all cookies:', e);
@@ -603,6 +616,26 @@ const SettingsScreen = ({ navigation }) => {
                 </TouchableOpacity>
               )}
             </View>
+          </View>
+
+          {/* Cookie Reject Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Auto-Reject Cookie Banners</Text>
+            <Text style={styles.sectionDescription}>
+              Automatically reject cookie consent dialogs on websites. Detects and clicks 'Reject All' / 'Decline' buttons on 30+ consent platforms. Falls back to hiding the banner if no reject button is found.
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.toggleRow, { borderColor: theme.primaryColor }]}
+              onPress={() => handleToggleCookieReject(!cookieReject)}
+            >
+              <View style={[styles.toggleSwitch, cookieReject && { backgroundColor: theme.primaryColor }]}>
+                <View style={[styles.toggleKnob, cookieReject && styles.toggleKnobActive]} />
+              </View>
+              <Text style={[styles.toggleLabel, { color: theme.primaryColor }]}>
+                {cookieReject ? 'ENABLED' : 'DISABLED'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* URL Liveness Section */}

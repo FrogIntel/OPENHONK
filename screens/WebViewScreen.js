@@ -10,6 +10,10 @@ import { useTheme } from '../context/ThemeContext';
 import ThemedBackground from '../components/ThemedBackground';
 import { isAdDomain, getAdBlockJS, fetchAdBlockList } from '../components/adBlockList';
 import { trackCookieDomain } from '../components/cookieManager';
+import { NativeModules } from 'react-native';
+
+const { CookiePersistModule } = NativeModules;
+const RUMBLE_COOKIE_KEY = '@rumble_cookies';
 
 const Icon = ({ name, size, color }) => {
   const iconMap = {
@@ -36,7 +40,11 @@ const WebViewScreen = ({ route, navigation }) => {
   const [isInsecure, setIsInsecure] = useState(false);
   const [isLocalContent, setIsLocalContent] = useState(url?.startsWith('file://') || false);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [cookiesReady, setCookiesReady] = useState(true);
+  const scrollPositions = useRef({});
+  const isGoingBack = useRef(false);
   const isReelBrowser = title === 'REEL' || url?.includes('anitabuidpe') || url?.includes('reel_browser');
+  const initialUrl = url;
 
   useEffect(() => {
     if (isReelBrowser) {
@@ -110,9 +118,57 @@ const WebViewScreen = ({ route, navigation }) => {
     }
     startBackgroundAudio();
     return () => {
+      // Save rumble cookies before unmount
+      if (currentUrl && currentUrl.includes('rumble.com')) {
+        saveRumbleCookies(currentUrl);
+      }
       stopBackgroundAudio();
     };
   }, []);
+
+  // Restore rumble cookies after incognito clears them on WebView mount
+  useEffect(() => {
+    if (!isReelBrowser && initialUrl && initialUrl.includes('rumble.com') && Platform.OS === 'android' && CookiePersistModule) {
+      // Incognito's removeAllCookies is async — wait for it to complete, then restore and reload
+      const timer = setTimeout(async () => {
+        const savedCookies = await AsyncStorage.getItem(RUMBLE_COOKIE_KEY);
+        if (savedCookies && savedCookies.length > 0) {
+          await CookiePersistModule.setCookies(initialUrl, savedCookies);
+          // Reload so the page loads with restored cookies
+          if (webViewRef.current) {
+            webViewRef.current.reload();
+          }
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Save rumble cookies when leaving a rumble page
+  const saveRumbleCookies = async (pageUrl) => {
+    if (!pageUrl || !pageUrl.includes('rumble.com')) return;
+    if (Platform.OS === 'android' && CookiePersistModule) {
+      try {
+        const cookies = await CookiePersistModule.getCookies(pageUrl);
+        if (cookies && cookies.length > 0) {
+          await AsyncStorage.setItem(RUMBLE_COOKIE_KEY, cookies);
+        }
+      } catch (e) {}
+    }
+  };
+
+  // Restore rumble cookies before loading a rumble page
+  const restoreRumbleCookies = async (pageUrl) => {
+    if (!pageUrl || !pageUrl.includes('rumble.com')) return;
+    if (Platform.OS === 'android' && CookiePersistModule) {
+      try {
+        const savedCookies = await AsyncStorage.getItem(RUMBLE_COOKIE_KEY);
+        if (savedCookies && savedCookies.length > 0) {
+          await CookiePersistModule.setCookies(pageUrl, savedCookies);
+        }
+      } catch (e) {}
+    }
+  };
 
   const handleRefresh = () => {
     if (webViewRef.current) {
@@ -133,6 +189,7 @@ const WebViewScreen = ({ route, navigation }) => {
 
   const handleBack = () => {
     if (canGoBack && webViewRef.current) {
+      isGoingBack.current = true;
       webViewRef.current.goBack();
     } else {
       navigation.goBack();
@@ -142,6 +199,7 @@ const WebViewScreen = ({ route, navigation }) => {
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (canGoBack && webViewRef.current) {
+        isGoingBack.current = true;
         webViewRef.current.goBack();
         return true;
       }
@@ -216,6 +274,20 @@ const WebViewScreen = ({ route, navigation }) => {
         onLoadProgress={(event) => {
           setLoadProgress(event.nativeEvent.progress);
           if (event.nativeEvent.progress >= 1) {
+            if (isGoingBack.current && currentUrl && scrollPositions.current[currentUrl] !== undefined) {
+              const scrollY = scrollPositions.current[currentUrl];
+              setTimeout(() => {
+                webViewRef.current?.injectJavaScript(`
+                  try { window.scrollTo(0, ${scrollY}); } catch(e) {}
+                  true;
+                `);
+              }, 100);
+              isGoingBack.current = false;
+            }
+            // Save cookies after rumble page finishes loading
+            if (event.nativeEvent.url && event.nativeEvent.url.includes('rumble.com')) {
+              saveRumbleCookies(event.nativeEvent.url);
+            }
             setTimeout(() => setLoadProgress(0), 300);
           }
         }}
@@ -223,12 +295,23 @@ const WebViewScreen = ({ route, navigation }) => {
           setCanGoBack(navState.canGoBack);
           if (navState.url) {
             trackCookieDomain(navState.url);
+            // Save cookies when leaving a rumble page, restore when entering one
+            if (currentUrl && currentUrl.includes('rumble.com') && !navState.url.includes('rumble.com')) {
+              saveRumbleCookies(currentUrl);
+            }
+            if (navState.url.includes('rumble.com') && (!currentUrl || !currentUrl.includes('rumble.com'))) {
+              restoreRumbleCookies(navState.url);
+            }
             setCurrentUrl(navState.url);
             setIsInsecure(navState.url.startsWith('http://'));
             setIsLocalContent(navState.url.startsWith('file://'));
           }
         }}
         onShouldStartLoadWithRequest={(request) => {
+          // Block known ad redirect domains that cause DNS resolution errors
+          if (request.url.includes('decafeligiblyhad.com') || request.url.includes('cpcstar.com') || request.url.includes('mbdippex.com') || request.url.includes('tapecontent.net') || request.url.includes('tapepops.com') || request.url.includes('abysscdn.com') || request.url.includes('sssrr.org') || request.url.includes('morphify.net') || request.url.includes('acertb.com')) {
+            return false;
+          }
           // Allow Cloudflare challenges
           if (request.url.includes('challenges.cloudflare.com') || request.url.includes('cloudflare.com/cdn-cgi/')) {
             return true;
@@ -268,12 +351,13 @@ const WebViewScreen = ({ route, navigation }) => {
           const targetUrl = nativeEvent.targetUrl;
           if (targetUrl) {
             if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
-              if (isAdDomain(targetUrl)) {
+              if (isAdDomain(targetUrl) || targetUrl.includes('decafeligiblyhad.com') || targetUrl.includes('cpcstar.com') || targetUrl.includes('mbdippex.com') || targetUrl.includes('tapecontent.net') || targetUrl.includes('tapepops.com') || targetUrl.includes('abysscdn.com') || targetUrl.includes('sssrr.org') || targetUrl.includes('morphify.net') || targetUrl.includes('acertb.com')) {
                 return;
               }
-              Linking.openURL(targetUrl).catch(() => {
+              if (webViewRef.current) {
+                webViewRef.current.injectJavaScript(`window.location.href = ${JSON.stringify(targetUrl)};`);
                 setCurrentUrl(targetUrl);
-              });
+              }
             } else {
               Linking.openURL(targetUrl).catch(() => {});
             }
@@ -313,8 +397,25 @@ const WebViewScreen = ({ route, navigation }) => {
               try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'check', rootChildren: document.getElementById('root') ? document.getElementById('root').children.length : -1, bodyHTML: document.body.innerHTML.substring(0, 200)})); } catch(e) {}
             }, 3000);
           })();
-        ` : adBlockJS}
+        ` : (adBlockJS + `
+          (function() {
+            var scrollTimer = null;
+            window.addEventListener('scroll', function() {
+              if (scrollTimer) clearTimeout(scrollTimer);
+              scrollTimer = setTimeout(function() {
+                try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'scroll', url: window.location.href, y: window.scrollY})); } catch(e) {}
+              }, 300);
+            }, {passive: true});
+          })();
+        `)}
         onMessage={(event) => {
+          try {
+            const msg = JSON.parse(event.nativeEvent.data);
+            if (msg.type === 'scroll' && msg.url) {
+              scrollPositions.current[msg.url] = msg.y;
+              return;
+            }
+          } catch(e) {}
           if (isReelBrowser) {
             try {
               const msg = JSON.parse(event.nativeEvent.data);

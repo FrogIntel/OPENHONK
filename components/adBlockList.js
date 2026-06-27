@@ -22,6 +22,9 @@ const FALLBACK_AD_DOMAINS = [
   'segment.io', 'mixpanel.com', 'amplitude.com',
   'branch.io', 'adjust.com', 'appsflyer.com',
   'sentry.io', 'bugsnag.com', 'adsafeprotected.com',
+  'decafeligiblyhad.com', 'cpcstar.com', 'mbdippex.com',
+  'tapecontent.net', 'tapepops.com', 'abysscdn.com',
+  'sssrr.org', 'morphify.net', 'acertb.com',
 ];
 
 const FALLBACK_CSS_SELECTORS = [
@@ -84,7 +87,9 @@ export const fetchAdBlockList = async () => {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed.domains)) {
-          parsed.domains = new Set(parsed.domains);
+          const mergedDomains = new Set(parsed.domains);
+          FALLBACK_AD_DOMAINS.forEach(d => mergedDomains.add(d));
+          parsed.domains = mergedDomains;
         }
         currentBlockList = parsed;
         const cachedUpdate = await AsyncStorage.getItem('@adblock_last_update');
