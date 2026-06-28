@@ -1,18 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert, Clipboard, ToastAndroid } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert, Clipboard, ToastAndroid, Animated } from 'react-native';
 import { startBackgroundAudio, stopBackgroundAudio } from '../utils/backgroundAudio';
-import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import ThemedBackground from '../components/ThemedBackground';
+import FunkyLoader from '../components/FunkyLoader';
 import { isAdDomain, getAdBlockJS, fetchAdBlockList } from '../components/adBlockList';
-import { trackCookieDomain } from '../components/cookieManager';
+import { trackCookieDomain, getCookieDomains } from '../components/cookieManager';
 import { NativeModules } from 'react-native';
 
-const { CookiePersistModule } = NativeModules;
+const { CookiePersistModule, OrientationModule } = NativeModules;
 const RUMBLE_COOKIE_KEY = '@rumble_cookies';
 
 const Icon = ({ name, size, color }) => {
@@ -21,6 +21,7 @@ const Icon = ({ name, size, color }) => {
     'menu': '☰',
     'refresh': '↻',
     'copy': '⧉',
+    'incognito': '🕶',
   };
   return <Text style={{ fontSize: size, color }}>{iconMap[name] || '•'}</Text>;
 };
@@ -31,7 +32,7 @@ const WebViewScreen = ({ route, navigation }) => {
   const webViewRef = useRef(null);
   const { url, title } = route.params;
   const [canGoBack, setCanGoBack] = useState(false);
-  const [reelIntroVisible, setReelIntroVisible] = useState(title === 'REEL' || url?.includes('anitabuidpe') || url?.includes('reel_browser'));
+  const [reelIntroVisible, setReelIntroVisible] = useState(title === 'REEL' || url?.includes('reel_browser'));
   const [adBlockJS, setAdBlockJS] = useState(getAdBlockJS());
   const [currentUrl, setCurrentUrl] = useState(url);
   const [reelHtml, setReelHtml] = useState(null);
@@ -40,10 +41,14 @@ const WebViewScreen = ({ route, navigation }) => {
   const [isInsecure, setIsInsecure] = useState(false);
   const [isLocalContent, setIsLocalContent] = useState(url?.startsWith('file://') || false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [cookiesReady, setCookiesReady] = useState(true);
+  const [keepCookies, setKeepCookies] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [gameMode, setGameMode] = useState(false);
   const scrollPositions = useRef({});
   const isGoingBack = useRef(false);
-  const isReelBrowser = title === 'REEL' || url?.includes('anitabuidpe') || url?.includes('reel_browser');
+  const keepCookiesRef = useRef(false);
+  const saveAllCookiesTimer = useRef(null);
+  const isReelBrowser = title === 'REEL' || url?.includes('reel_browser');
   const initialUrl = url;
 
   useEffect(() => {
@@ -110,6 +115,12 @@ const WebViewScreen = ({ route, navigation }) => {
     fetchAdBlockList().then(() => {
       setAdBlockJS(getAdBlockJS());
     });
+    AsyncStorage.getItem('@keep_cookies').then(val => {
+      const enabled = val === 'true';
+      setKeepCookies(enabled);
+      keepCookiesRef.current = enabled;
+      setSettingsLoaded(true);
+    });
     if (isReelBrowser) {
       setCurrentUrl('file:///android_asset/reel_browser/index.html');
       setReelLoading(false);
@@ -122,25 +133,51 @@ const WebViewScreen = ({ route, navigation }) => {
       if (currentUrl && currentUrl.includes('rumble.com')) {
         saveRumbleCookies(currentUrl);
       }
+      // Save all tracked domain cookies before unmount (when keepCookies is ON)
+      saveAllCookies();
+      // Clear all cookies on unmount when keepCookies is OFF
+      if (!keepCookiesRef.current && Platform.OS === 'android' && CookiePersistModule) {
+        CookiePersistModule.clearAll();
+      }
+      // Clear debounce timer
+      if (saveAllCookiesTimer.current) clearTimeout(saveAllCookiesTimer.current);
+      if (OrientationModule) OrientationModule.unlock();
       stopBackgroundAudio();
     };
   }, []);
 
-  // Restore rumble cookies after incognito clears them on WebView mount
+  useEffect(() => {
+    if (gameMode && OrientationModule) {
+      OrientationModule.lockLandscape();
+    } else if (OrientationModule) {
+      OrientationModule.unlock();
+    }
+  }, [gameMode]);
+
+  // Auto-enable game mode for itch.io
+  useEffect(() => {
+    if (currentUrl?.includes('itch.io')) {
+      setGameMode(true);
+    } else {
+      setGameMode(false);
+    }
+  }, [currentUrl]);
+
+  // Restore all saved cookies before WebView mounts (when keepCookies is ON)
+  useEffect(() => {
+    if (!isReelBrowser && keepCookies && Platform.OS === 'android' && CookiePersistModule && settingsLoaded) {
+      restoreAllCookies();
+    }
+  }, [settingsLoaded]);
+
+  // Restore rumble cookies before WebView mounts
   useEffect(() => {
     if (!isReelBrowser && initialUrl && initialUrl.includes('rumble.com') && Platform.OS === 'android' && CookiePersistModule) {
-      // Incognito's removeAllCookies is async — wait for it to complete, then restore and reload
-      const timer = setTimeout(async () => {
-        const savedCookies = await AsyncStorage.getItem(RUMBLE_COOKIE_KEY);
-        if (savedCookies && savedCookies.length > 0) {
-          await CookiePersistModule.setCookies(initialUrl, savedCookies);
-          // Reload so the page loads with restored cookies
-          if (webViewRef.current) {
-            webViewRef.current.reload();
-          }
+      const savedCookies = AsyncStorage.getItem(RUMBLE_COOKIE_KEY).then(cookies => {
+        if (cookies && cookies.length > 0) {
+          CookiePersistModule.setCookies(initialUrl, cookies);
         }
-      }, 800);
-      return () => clearTimeout(timer);
+      });
     }
   }, []);
 
@@ -157,17 +194,47 @@ const WebViewScreen = ({ route, navigation }) => {
     }
   };
 
-  // Restore rumble cookies before loading a rumble page
-  const restoreRumbleCookies = async (pageUrl) => {
-    if (!pageUrl || !pageUrl.includes('rumble.com')) return;
-    if (Platform.OS === 'android' && CookiePersistModule) {
-      try {
-        const savedCookies = await AsyncStorage.getItem(RUMBLE_COOKIE_KEY);
-        if (savedCookies && savedCookies.length > 0) {
-          await CookiePersistModule.setCookies(pageUrl, savedCookies);
+  // Save cookies for all tracked domains (when keepCookies is ON)
+  const saveAllCookies = async () => {
+    if (!keepCookiesRef.current || Platform.OS !== 'android' || !CookiePersistModule) return;
+    try {
+      const domains = await getCookieDomains();
+      for (const domain of domains) {
+        const url = 'https://' + domain;
+        const cookies = await CookiePersistModule.getCookies(url);
+        if (cookies && cookies.length > 0) {
+          await AsyncStorage.setItem('@cookies_' + domain, cookies);
         }
-      } catch (e) {}
-    }
+      }
+      CookiePersistModule.flush();
+    } catch (e) {}
+  };
+
+  // Save cookies for a specific URL's domain (when keepCookies is ON)
+  const saveCookiesForUrl = async (pageUrl) => {
+    if (!keepCookiesRef.current || Platform.OS !== 'android' || !CookiePersistModule) return;
+    try {
+      const domain = new URL(pageUrl).hostname;
+      const cookies = await CookiePersistModule.getCookies(pageUrl);
+      if (cookies && cookies.length > 0) {
+        await AsyncStorage.setItem('@cookies_' + domain, cookies);
+      }
+    } catch (e) {}
+  };
+
+  // Restore cookies for all tracked domains (when keepCookies is ON)
+  const restoreAllCookies = async () => {
+    if (!keepCookiesRef.current || Platform.OS !== 'android' || !CookiePersistModule) return;
+    try {
+      const domains = await getCookieDomains();
+      for (const domain of domains) {
+        const url = 'https://' + domain;
+        const savedCookies = await AsyncStorage.getItem('@cookies_' + domain);
+        if (savedCookies && savedCookies.length > 0) {
+          await CookiePersistModule.setCookies(url, savedCookies);
+        }
+      }
+    } catch (e) {}
   };
 
   const handleRefresh = () => {
@@ -187,7 +254,7 @@ const WebViewScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleBack = () => {
+  const handleHardwareBack = () => {
     if (canGoBack && webViewRef.current) {
       isGoingBack.current = true;
       webViewRef.current.goBack();
@@ -203,14 +270,18 @@ const WebViewScreen = ({ route, navigation }) => {
         webViewRef.current.goBack();
         return true;
       }
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+        return true;
+      }
       return false;
     });
     return () => backHandler.remove();
-  }, [canGoBack]);
+  }, [canGoBack, navigation]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
-      <ThemedBackground theme={theme} />
+    <View style={{ flex: 1, backgroundColor: '#0a0a0f' }}>
+      {!gameMode && <ThemedBackground theme={theme} />}
       <StatusBar hidden={true} translucent={true} />
       <Modal
         visible={reelIntroVisible}
@@ -242,20 +313,19 @@ const WebViewScreen = ({ route, navigation }) => {
         source={{ uri: currentUrl }}
         originWhitelist={['*']}
         webviewDebuggingEnabled={__DEV__}
-        style={[styles.webview, { marginTop: isReelBrowser ? 0 : 50, marginBottom: isReelBrowser ? 0 : Math.max(insets.bottom, 0) }]}
+        style={[styles.webview, { marginTop: (isReelBrowser || gameMode) ? 0 : 50, marginBottom: (isReelBrowser || gameMode) ? 0 : Math.max(insets.bottom, 0) }]}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        startInLoadingState={true}
-        cacheEnabled={!isReelBrowser && !isLocalContent}
-        cacheMode={(isReelBrowser || isLocalContent) ? 'LOAD_NO_CACHE' : 'LOAD_DEFAULT'}
+        startInLoadingState={!currentUrl?.includes('itch.io')}
+        cacheEnabled={true}
+        cacheMode="LOAD_DEFAULT"
         mixedContentMode="compatibility"
         thirdPartyCookiesEnabled={true}
-        incognito={!isReelBrowser && !currentUrl?.includes('openhonk_home')}
         allowsFullscreenVideo={true}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
-        allowsBackForwardNavigationGestures={true}
-        setSupportMultipleWindows={true}
+        allowsBackForwardNavigationGestures={!currentUrl?.includes('itch.io')}
+        setSupportMultipleWindows={isReelBrowser && !currentUrl?.includes('itch.io')}
         geolocationEnabled={false}
         saveFormDataDisabled={true}
         userAgent="Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
@@ -288,6 +358,14 @@ const WebViewScreen = ({ route, navigation }) => {
             if (event.nativeEvent.url && event.nativeEvent.url.includes('rumble.com')) {
               saveRumbleCookies(event.nativeEvent.url);
             }
+            // Save cookies for current domain when keepCookies is ON
+            if (keepCookiesRef.current && event.nativeEvent.url) {
+              trackCookieDomain(event.nativeEvent.url);
+              saveCookiesForUrl(event.nativeEvent.url);
+              // Debounced full save of all tracked domains
+              if (saveAllCookiesTimer.current) clearTimeout(saveAllCookiesTimer.current);
+              saveAllCookiesTimer.current = setTimeout(() => saveAllCookies(), 2000);
+            }
             setTimeout(() => setLoadProgress(0), 300);
           }
         }}
@@ -305,6 +383,16 @@ const WebViewScreen = ({ route, navigation }) => {
           }
         }}
         onShouldStartLoadWithRequest={(request) => {
+          // Special case: thelightpaper.co.uk PDFs open internally via Google Docs viewer
+          const lowerUrl = request.url.toLowerCase();
+          if (lowerUrl.includes('thelightpaper.co.uk') && (lowerUrl.endsWith('.pdf') || lowerUrl.includes('.pdf?'))) {
+            if (webViewRef.current) {
+              const viewerUrl = 'https://docs.google.com/gview?embedded=1&url=' + encodeURIComponent(request.url);
+              webViewRef.current.injectJavaScript(`window.location.href = ${JSON.stringify(viewerUrl)};`);
+              setCurrentUrl(viewerUrl);
+            }
+            return false;
+          }
           // Block known ad redirect domains that cause DNS resolution errors
           if (request.url.includes('decafeligiblyhad.com') || request.url.includes('cpcstar.com') || request.url.includes('mbdippex.com') || request.url.includes('tapecontent.net') || request.url.includes('tapepops.com') || request.url.includes('abysscdn.com') || request.url.includes('sssrr.org') || request.url.includes('morphify.net') || request.url.includes('acertb.com')) {
             return false;
@@ -348,7 +436,7 @@ const WebViewScreen = ({ route, navigation }) => {
           const targetUrl = nativeEvent.targetUrl;
           if (targetUrl) {
             if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
-              if (isAdDomain(targetUrl) || targetUrl.includes('decafeligiblyhad.com') || targetUrl.includes('cpcstar.com') || targetUrl.includes('mbdippex.com') || targetUrl.includes('tapecontent.net') || targetUrl.includes('tapepops.com') || targetUrl.includes('abysscdn.com') || targetUrl.includes('sssrr.org') || targetUrl.includes('morphify.net') || targetUrl.includes('acertb.com')) {
+              if (isAdDomain(targetUrl)) {
                 return;
               }
               if (webViewRef.current) {
@@ -362,13 +450,6 @@ const WebViewScreen = ({ route, navigation }) => {
         }}
         injectedJavaScriptBeforeContentLoaded={isReelBrowser ? `
           (function() {
-            window._ohk_a = atob('aHR0cHM6Ly9hbmF0YTJicjk4bC5sYXN0YXBwLmRldg==');
-            window._ohk_b = atob('OWI1YzcyOGYtN2ZlMS00Mzk1LWJhNGEtOTAxZmQ0NDY1MmFh');
-            try {
-              Object.defineProperty(window.location, 'origin', {
-                get: function() { return 'https://anitabuidpe.lastapp.dev'; }
-              });
-            } catch(e) {}
             var origError = window.onerror;
             window.onerror = function(msg, url, line, col, err) {
               try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'error', msg:msg, url:url, line:line})); } catch(e) {}
@@ -393,16 +474,121 @@ const WebViewScreen = ({ route, navigation }) => {
             setTimeout(function() {
               try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'check', rootChildren: document.getElementById('root') ? document.getElementById('root').children.length : -1, bodyHTML: document.body.innerHTML.substring(0, 200)})); } catch(e) {}
             }, 3000);
+            // Block decafeligiblyhad.com inside REEL/TV iframes and popups
+            var blockedDomains = ['decafeligiblyhad.com'];
+            function isBlockedUrl(url) {
+              if (!url) return false;
+              var u = url.toLowerCase();
+              for (var i = 0; i < blockedDomains.length; i++) {
+                if (u.indexOf(blockedDomains[i]) !== -1) return true;
+              }
+              return false;
+            }
+            function blockFrames() {
+              var frames = document.querySelectorAll('iframe');
+              frames.forEach(function(f) {
+                if (isBlockedUrl(f.src)) { f.remove(); }
+              });
+            }
+            function startFrameBlocker() {
+              blockFrames();
+              var frameObserver = new MutationObserver(function(mutations) {
+                blockFrames();
+              });
+              frameObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+              window.addEventListener('load', blockFrames);
+              setInterval(blockFrames, 500);
+            }
+            if (document.body) {
+              startFrameBlocker();
+            } else {
+              window.addEventListener('load', startFrameBlocker);
+            }
+            var origOpen = window.open;
+            window.open = function(url) {
+              if (isBlockedUrl(url)) return null;
+              return origOpen ? origOpen.apply(this, arguments) : null;
+            };
           })();
         ` : (adBlockJS + `
           (function() {
-            var scrollTimer = null;
-            window.addEventListener('scroll', function() {
-              if (scrollTimer) clearTimeout(scrollTimer);
-              scrollTimer = setTimeout(function() {
-                try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'scroll', url: window.location.href, y: window.scrollY})); } catch(e) {}
-              }, 300);
-            }, {passive: true});
+            var blockedDomains = ['decafeligiblyhad.com', 'cpcstar.com', 'mbdippex.com', 'tapecontent.net', 'tapepops.com', 'abysscdn.com', 'sssrr.org', 'morphify.net', 'acertb.com'];
+            function isBlockedUrl(url) {
+              if (!url) return false;
+              var u = url.toLowerCase();
+              for (var i = 0; i < blockedDomains.length; i++) {
+                if (u.indexOf(blockedDomains[i]) !== -1) return true;
+              }
+              return false;
+            }
+            function blockFrames() {
+              var frames = document.querySelectorAll('iframe, embed, object');
+              frames.forEach(function(f) {
+                if (isBlockedUrl(f.src) || isBlockedUrl(f.data)) { f.remove(); }
+              });
+            }
+            function poisonElement(el) {
+              if (!el || !el.setAttribute) return;
+              var origSetAttribute = el.setAttribute.bind(el);
+              var origGetAttribute = el.getAttribute.bind(el);
+              el.setAttribute = function(name, value) {
+                if ((name === 'src' || name === 'data') && isBlockedUrl(value)) return;
+                return origSetAttribute(name, value);
+              };
+              try {
+                Object.defineProperty(el, 'src', {
+                  set: function(value) { if (isBlockedUrl(value)) return; origSetAttribute('src', value); },
+                  get: function() { return origGetAttribute('src'); }
+                });
+              } catch(e) {}
+            }
+            function startFrameBlocker() {
+              blockFrames();
+              var frameObserver = new MutationObserver(function() { blockFrames(); });
+              if (document.body) {
+                frameObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'data'] });
+                setInterval(blockFrames, 300);
+              } else {
+                window.addEventListener('load', startFrameBlocker);
+              }
+            }
+            startFrameBlocker();
+            var origCreate = document.createElement;
+            document.createElement = function(tag) {
+              var el = origCreate.apply(this, arguments);
+              if (tag && (tag.toLowerCase() === 'iframe' || tag.toLowerCase() === 'embed' || tag.toLowerCase() === 'object')) {
+                poisonElement(el);
+              }
+              return el;
+            };
+            var origCreateNS = document.createElementNS;
+            document.createElementNS = function(ns, tag) {
+              var el = origCreateNS.apply(this, arguments);
+              if (tag && (tag.toLowerCase() === 'iframe' || tag.toLowerCase() === 'embed' || tag.toLowerCase() === 'object')) {
+                poisonElement(el);
+              }
+              return el;
+            };
+            var origOpen = window.open;
+            window.open = function(url) {
+              if (isBlockedUrl(url)) return null;
+              return origOpen ? origOpen.apply(this, arguments) : null;
+            };
+            if (window.location.hostname.indexOf('itch.io') === -1) {
+              var scrollTimer = null;
+              window.addEventListener('scroll', function() {
+                if (scrollTimer) clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(function() {
+                  try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'scroll', url: window.location.href, y: window.scrollY})); } catch(e) {}
+                }, 300);
+              }, {passive: true});
+            }
+            // Minimal CSS for itch.io game pages
+            if (window.location.hostname.indexOf('itch.io') !== -1) {
+              var style = document.createElement('style');
+              style.textContent = 'html,body{margin:0!important;padding:0!important;background:#1a2e1a!important;overflow:hidden!important}.header,.footer,.game_info,.formatted_description,.user_formatted,.column,.view_game_footer,.game_devlog,.game_comments,.footer_nav,.columns,.social_buttons,.community{display:none!important}*{-webkit-tap-highlight-color:transparent!important}';
+              document.head.appendChild(style);
+            }
           })();
         `)}
         onMessage={(event) => {
@@ -459,6 +645,42 @@ const WebViewScreen = ({ route, navigation }) => {
         }}
         injectedJavaScript={!isReelBrowser ? `
           (function() {
+            function isLightPaperPdf(url) {
+              var u = url.toLowerCase();
+              return u.indexOf('thelightpaper.co.uk') !== -1 && u.indexOf('.pdf') !== -1;
+            }
+            function isBlockedAd(url) {
+              return url && url.toLowerCase().indexOf('decafeligiblyhad.com') !== -1;
+            }
+            function openPdfInViewer(url) {
+              window.location.href = 'https://docs.google.com/gview?embedded=1&url=' + encodeURIComponent(url);
+            }
+            document.addEventListener('click', function(e) {
+              var a = e.target.closest('a');
+              if (a && a.href) {
+                if (isBlockedAd(a.href)) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return false;
+                }
+                if (isLightPaperPdf(a.href)) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openPdfInViewer(a.href);
+                  return false;
+                }
+              }
+            }, true);
+            var origOpen = window.open;
+            window.open = function(url, target, features) {
+              if (!url) return origOpen ? origOpen.apply(this, arguments) : null;
+              if (isBlockedAd(url)) return null;
+              if (isLightPaperPdf(url)) {
+                openPdfInViewer(url);
+                return null;
+              }
+              return origOpen ? origOpen.apply(this, arguments) : null;
+            };
             if (window.location.protocol === 'http:') {
               function blockInsecureLogins() {
                 document.querySelectorAll('form').forEach(function(form) {
@@ -494,8 +716,9 @@ const WebViewScreen = ({ route, navigation }) => {
       )}
 
       {/* Floating header overlay - WebView loads from top of screen */}
+      {!gameMode && (
       <View style={styles.headerOverlay}>
-        <TouchableOpacity onPress={handleBack}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={28} color={theme.primaryColor} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.primaryColor }]}>{title}</Text>
@@ -517,10 +740,30 @@ const WebViewScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={handleRefresh}>
           <Icon name="refresh" size={28} color={theme.primaryColor} />
         </TouchableOpacity>
+        {!isReelBrowser && !isLocalContent && (
+          <TouchableOpacity onPress={() => {
+            const newVal = !keepCookies;
+            setKeepCookies(newVal);
+            keepCookiesRef.current = newVal;
+            AsyncStorage.setItem('@keep_cookies', newVal ? 'true' : 'false');
+            if (Platform.OS === 'android') {
+              ToastAndroid.show(newVal ? 'Cookies will be kept' : 'Incognito: cookies cleared on exit', ToastAndroid.SHORT);
+            }
+          }} style={{ marginLeft: 10 }}>
+            <Icon name="incognito" size={24} color={keepCookies ? theme.textSecondaryColor : theme.primaryColor} />
+          </TouchableOpacity>
+        )}
       </View>
+      )}
+      {loadProgress > 0 && loadProgress < 1 && !currentUrl.includes('cloudflare.com') && (
+        <View style={styles.loaderOverlay} pointerEvents="none">
+          <FunkyLoader color={theme.primaryColor} size={64} />
+        </View>
+      )}
       {loadProgress > 0 && loadProgress < 1 && (
-        <View style={styles.progressBarContainer}>
+        <View style={styles.progressBarContainer} pointerEvents="none">
           <View style={[styles.progressBar, { width: `${loadProgress * 100}%`, backgroundColor: theme.primaryColor }]} />
+          <View style={[styles.progressBarGlow, { width: `${loadProgress * 100}%`, shadowColor: theme.primaryColor }]} />
         </View>
       )}
     </View>
@@ -578,12 +821,36 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 3,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     zIndex: 11,
+    overflow: 'hidden',
   },
   progressBar: {
     height: 3,
     borderRadius: 1.5,
+  },
+  progressBarGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: 3,
+    borderRadius: 1.5,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 5,
+    opacity: 0.6,
+  },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    zIndex: 5,
   },
   introOverlay: {
     flex: 1,

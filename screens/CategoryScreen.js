@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Platform, StatusBar, Image, Share, Dimensions, TextInput, Modal, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Platform, StatusBar, Image, Share, Dimensions, TextInput, Modal, ScrollView, Animated, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import ThemedBackground from '../components/ThemedBackground';
 import SideMenu from '../components/SideMenu';
-import ScreenshotImage from '../components/ScreenshotImage';
+import ScreenshotImage, { AnimatedScreenshotImage } from '../components/ScreenshotImage';
 import { appData } from '../data/urls';
 import { getFilteredUrls } from '../utils/filteredData';
 import { searchAllApp } from '../utils/globalSearch';
-import WebsiteCarousel from '../components/WebsiteCarousel';
 import SearchGridModal from '../components/SearchGridModal';
 import NotificationIcon from '../components/NotificationIcon';
 import { isNewContent, markNewContentSeen, useNewContentSync } from '../utils/newContent';
@@ -54,25 +53,13 @@ const CategoryScreen = ({ route, navigation }) => {
   const isLandscape = width > height;
   const numColumns = isLandscape ? 3 : 2;
   const tileWidth = (width - tilePadding * (numColumns + 1)) / numColumns;
+  const carouselHeight = isLandscape ? 180 : 320;
   const { categoryKey, categoryTitle, data } = route.params;
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50, minimumViewTime: 100 });
-  const onViewableItemsChanged = useRef(({ viewableItems, changed }) => {
-    // Prefetch screenshots for items currently visible
-    viewableItems.forEach(item => {
-      if (item.item?.url) prefetchUrl(item.item.url, true);
-    });
-    // Prefetch next batch ahead of scroll - items right after the last visible one
-    if (viewableItems.length > 0) {
-      const maxIndex = Math.max(...viewableItems.map(v => v.index || 0));
-      const filteredUrls = getFilteredUrls(category.urls) || [];
-      const lookahead = 10;
-      for (let i = maxIndex + 1; i <= Math.min(maxIndex + lookahead, filteredUrls.length - 1); i++) {
-        if (filteredUrls[i]?.url) prefetchUrl(filteredUrls[i].url, false);
-      }
-    }
-  });
+  const [currentSubCatIndex, setCurrentSubCatIndex] = useState(0);
+  const subCatScrollRef = useRef(null);
+  const subCatScaleAnim = useRef(new Animated.Value(1)).current;
 
   const openMenu = () => setMenuVisible(true);
 
@@ -130,8 +117,83 @@ const CategoryScreen = ({ route, navigation }) => {
     category = { urls: [] };
   }
 
+  // Detect nested subcategories (e.g. restructured qAnon, tacoToppings, news)
+  const hasSubCategories = !category.urls && !category.title && Object.keys(category).length > 0 &&
+    Object.values(category).some(val => val && val.urls && val.title);
+
+  // Get random websites from all subcategories for carousel
+  const getRandomSubCategoryWebsites = () => {
+    const allWebsites = [];
+    Object.keys(category).forEach(subKey => {
+      const subCat = category[subKey];
+      if (subCat && subCat.urls) {
+        getFilteredUrls(subCat.urls).forEach(item => {
+          if (item && item.url && item.url.trim() !== '') {
+            allWebsites.push({ ...item, category: subCat.title });
+          }
+        });
+      }
+    });
+    return allWebsites.sort(() => Math.random() - 0.5).slice(0, 5);
+  };
+
+  const subCategoryCarouselWebsites = React.useMemo(() => getRandomSubCategoryWebsites(), [category]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const animate = () => {
+      Animated.sequence([
+        Animated.timing(subCatScaleAnim, { toValue: 1.1, duration: 5000, useNativeDriver: true }),
+        Animated.timing(subCatScaleAnim, { toValue: 1, duration: 5000, useNativeDriver: true }),
+      ]).start(({ finished }) => {
+        if (finished && isMounted) animate();
+      });
+    };
+    animate();
+    const interval = setInterval(() => {
+      setCurrentSubCatIndex((prev) => (prev + 1) % subCategoryCarouselWebsites.length);
+    }, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      subCatScaleAnim.stopAnimation();
+    };
+  }, [subCategoryCarouselWebsites.length, subCatScaleAnim]);
+
+  useEffect(() => {
+    if (subCatScrollRef.current) {
+      subCatScrollRef.current.scrollTo({ x: currentSubCatIndex * width, animated: true });
+    }
+  }, [currentSubCatIndex, width]);
+
   const isNotifications = categoryTitle === 'NOTIFICATIONS';
   const [notifUrls, setNotifUrls] = useState(category.urls || []);
+
+  // Pre-compute filtered URLs once with useMemo to avoid re-filtering on every render
+  const filteredUrls = React.useMemo(() => {
+    const urls = getFilteredUrls(category.urls) || [];
+    if (categoryKey === 'putainfo') {
+      return urls.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+    }
+    return urls;
+  }, [categoryKey, category.urls]);
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50, minimumViewTime: 100 });
+  const filteredUrlsRef = useRef(filteredUrls);
+  filteredUrlsRef.current = filteredUrls;
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    viewableItems.forEach(item => {
+      if (item.item?.url) prefetchUrl(item.item.url, true);
+    });
+    if (viewableItems.length > 0) {
+      const maxIndex = Math.max(...viewableItems.map(v => v.index || 0));
+      const urls = filteredUrlsRef.current;
+      const lookahead = 20;
+      for (let i = maxIndex + 1; i <= Math.min(maxIndex + lookahead, urls.length - 1); i++) {
+        if (urls[i]?.url) prefetchUrl(urls[i].url, false);
+      }
+    }
+  });
 
   useEffect(() => {
     if (isNotifications) {
@@ -180,7 +242,7 @@ const CategoryScreen = ({ route, navigation }) => {
             };
           } catch (e) {}
         }
-        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || [])]
+        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || []).slice().reverse()]
           .filter(n => n && !dismissed.includes(n.id))
           .map(n => ({
             ...n,
@@ -216,12 +278,11 @@ const CategoryScreen = ({ route, navigation }) => {
 
   // Prefetch first batch of screenshots on screen open
   useEffect(() => {
-    const filteredUrls = getFilteredUrls(category.urls) || [];
-    const initialBatch = 20;
+    const initialBatch = 40;
     for (let i = 0; i < Math.min(initialBatch, filteredUrls.length); i++) {
       if (filteredUrls[i]?.url) prefetchUrl(filteredUrls[i].url, i < 6);
     }
-  }, [categoryKey]);
+  }, [filteredUrls]);
 
   const openUrl = (url, title) => {
     if (url) {
@@ -295,23 +356,74 @@ const CategoryScreen = ({ route, navigation }) => {
             );
           }}
         />
+      ) : hasSubCategories ? (
+        <>
+          <View style={[styles.carouselContainer, { height: carouselHeight, marginTop: 60 }]}>
+            <ScrollView
+              ref={subCatScrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={[styles.carouselScroll, { height: carouselHeight }]}
+            >
+              {subCategoryCarouselWebsites.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.carouselItem, { width, height: carouselHeight }]}
+                  onPress={() => openUrl(item.url, item.title)}
+                >
+                  <AnimatedScreenshotImage
+                    url={item.url}
+                    style={[
+                      styles.carouselImage,
+                      { width, height: carouselHeight },
+                      { transform: [{ scale: subCatScaleAnim }] }
+                    ]}
+                  />
+                  <View style={styles.carouselOverlay}>
+                    <Text style={styles.carouselTitle}>{item.title}</Text>
+                    <Text style={styles.carouselCategory}>{item.category}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          <ScrollView style={styles.content} contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 20, paddingHorizontal: 15 }}>
+            {Object.entries(category).map(([key, subCat]) => {
+              const filteredCount = getFilteredUrls(subCat.urls).length;
+              const hasNew = subCat.urls.some(item => isNewContent(item.url));
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={styles.categoryItem}
+                  onPress={() => navigation.push('Category', { categoryKey: key, categoryTitle: subCat.title, data: category })}
+                >
+                  <Text style={styles.categoryTitle}>{subCat.title}</Text>
+                  <View style={styles.categoryRow}>
+                    <Text style={styles.categoryCount}>{filteredCount} items</Text>
+                    {hasNew && <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </>
       ) : (
       <FlatList
         key={`grid-${numColumns}`}
         style={styles.content}
         contentContainerStyle={{ paddingTop: 60, paddingBottom: insets.bottom + 20, paddingHorizontal: tilePadding, alignItems: 'center' }}
-        data={(() => {
-          const urls = getFilteredUrls(category.urls) || [];
-          if (categoryKey === 'putainfo') {
-            return urls.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-          }
-          return urls;
-        })()}
+        data={filteredUrls}
         numColumns={numColumns}
         keyExtractor={(item, index) => index.toString()}
         onViewableItemsChanged={onViewableItemsChanged.current}
         viewabilityConfig={viewabilityConfig.current}
-        renderItem={({ item }) => (
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={20}
+        updateCellsBatchingPeriod={16}
+        initialNumToRender={20}
+        windowSize={15}
+        renderItem={({ item, index }) => (
           <TouchableOpacity
             style={[styles.gridItem, { width: tileWidth, marginLeft: tilePadding }]}
             onPress={() => { markNewContentSeen(item.url); openUrl(item.url, item.title); }}
@@ -320,6 +432,7 @@ const CategoryScreen = ({ route, navigation }) => {
               <ScreenshotImage
                 url={item.url}
                 style={styles.gridImage}
+                staggerIndex={index}
               />
               <View style={styles.gridOverlay}>
                 <Text style={styles.gridTitle} numberOfLines={2}>{item.title}</Text>
@@ -357,6 +470,7 @@ const CategoryScreen = ({ route, navigation }) => {
       visible={searchVisible}
       onClose={() => setSearchVisible(false)}
       onOpenUrl={openUrl}
+      navigation={navigation}
       primaryColor={theme.primaryColor}
     />
     </View>
@@ -368,6 +482,84 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  categoryItem: {
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffcc33',
+    elevation: 3,
+    shadowColor: '#ffcc33',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#ffcc33',
+    marginBottom: 5,
+    letterSpacing: 1,
+    textShadowColor: 'rgba(255, 204, 51, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    fontFamily: 'Gunmetal',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffcc33',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  carouselContainer: {
+    height: 320,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 2,
+    borderBottomColor: '#ffcc33',
+  },
+  carouselScroll: {
+    height: 320,
+  },
+  carouselItem: {
+    width: Dimensions.get('window').width,
+    height: 320,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0d0d0d',
+  },
+  carouselImage: {
+    position: 'absolute',
+    width: Dimensions.get('window').width,
+    height: 320,
+  },
+  carouselOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 15,
+    alignItems: 'flex-end',
+  },
+  carouselTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#ffcc33',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  carouselCategory: {
+    fontSize: 12,
+    color: '#ffffff',
+    textAlign: 'right',
   },
   headerOverlay: {
     position: 'absolute',

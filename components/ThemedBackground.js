@@ -946,7 +946,7 @@ const XMBWaveBackground = ({ theme, style }) => {
 
   const waves = useMemo(() => {
     const arr = [];
-    const numWaves = 10;
+    const numWaves = 5;
     for (let i = 0; i < numWaves; i++) {
       const depth = i / numWaves;
       arr.push({
@@ -966,7 +966,7 @@ const XMBWaveBackground = ({ theme, style }) => {
 
   const particles = useMemo(() => {
     const arr = [];
-    const numParticles = 80;
+    const numParticles = 20;
     for (let i = 0; i < numParticles; i++) {
       arr.push({
         key: i,
@@ -974,15 +974,15 @@ const XMBWaveBackground = ({ theme, style }) => {
         y: Math.random() * SCREEN_HEIGHT,
         size: 0.5 + Math.random() * 3.5,
         speed: 0.2 + Math.random() * 0.8,
-        waveIdx: Math.floor(Math.random() * 10),
+        waveIdx: Math.floor(Math.random() * 5),
         opacity: 0.2 + Math.random() * 0.6,
-        glow: Math.random() < 0.3,
+        glow: false,
       });
     }
     return arr;
   }, []);
 
-  const STEP = 3;
+  const STEP = 10;
 
   return (
     <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
@@ -1102,12 +1102,7 @@ const XMBWaveBackground = ({ theme, style }) => {
                 height: p.size,
                 borderRadius: p.size,
                 backgroundColor: theme.primaryColor,
-                opacity: p.glow ? 0.9 : 0.6,
-                shadowColor: theme.primaryColor,
-                shadowOffset: { width: 0, height: 0 },
-                shadowRadius: p.glow ? 6 : 0,
-                shadowOpacity: p.glow ? 0.8 : 0,
-                elevation: p.glow ? 3 : 0,
+                opacity: 0.6,
               }}
             />
           </Animated.View>
@@ -1121,18 +1116,15 @@ const XMBWaveBackground = ({ theme, style }) => {
 const XMBWave3Background = ({ theme, style }) => {
   const waveAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const lineAnim = useRef(new Animated.Value(0)).current;
 
-  // 5 speed-tier animations for seamless orb wrapping
+  // 3 speed-tier animations for seamless orb wrapping
   const tierAnims = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0),
   ]).current;
 
-  const tierDurations = [8000, 12000, 16000, 21000, 27000];
+  const tierDurations = [10000, 16000, 22000];
 
   useEffect(() => {
     // Wave: seamless 0→1→0 round trip (no jump on loop)
@@ -1151,14 +1143,6 @@ const XMBWave3Background = ({ theme, style }) => {
       ]),
     ).start();
 
-    // Line fade: seamless 0→1→0 round trip
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(lineAnim, { toValue: 1, duration: 4500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(lineAnim, { toValue: 0, duration: 4500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ]),
-    ).start();
-
     // Each tier: 0→1 linear loop, orbs travel exactly SCREEN_WIDTH+60
     tierAnims.forEach((anim, i) => {
       Animated.loop(
@@ -1170,7 +1154,7 @@ const XMBWave3Background = ({ theme, style }) => {
         }),
       ).start();
     });
-  }, [waveAnim, glowAnim, lineAnim, tierAnims]);
+  }, [waveAnim, glowAnim, tierAnims]);
 
   const waves = useMemo(() => {
     const arr = [];
@@ -1193,18 +1177,17 @@ const XMBWave3Background = ({ theme, style }) => {
 
   const orbs = useMemo(() => {
     const arr = [];
-    const numOrbs = 120;
+    const numOrbs = 30;
     for (let i = 0; i < numOrbs; i++) {
       const waveIdx = Math.floor(Math.random() * 4);
       const roll = Math.random();
       let styleType = 'solid';
-      if (roll < 0.2) styleType = 'glowing';
-      else if (roll < 0.45) styleType = 'stroked';
-      else if (roll < 0.65) styleType = 'faint';
+      if (roll < 0.3) styleType = 'stroked';
+      else if (roll < 0.5) styleType = 'faint';
       arr.push({
         key: i,
         startX: Math.random() * (SCREEN_WIDTH + 60) - 30,
-        tier: Math.floor(Math.random() * 5),
+        tier: Math.floor(Math.random() * 3),
         waveIdx,
         size: 1 + Math.random() * 5,
         opacity: 0.1 + Math.random() * 0.85,
@@ -1216,20 +1199,7 @@ const XMBWave3Background = ({ theme, style }) => {
     return arr;
   }, []);
 
-  const lines = useMemo(() => {
-    const arr = [];
-    const numLines = 20;
-    for (let i = 0; i < numLines; i++) {
-      const o1 = Math.floor(Math.random() * 120);
-      const o2 = Math.floor(Math.random() * 120);
-      if (o1 !== o2) {
-        arr.push({ key: i, o1, o2, opacity: 0.05 + Math.random() * 0.1 });
-      }
-    }
-    return arr;
-  }, []);
-
-  const STEP = 2;
+  const STEP = 8;
   const TRAVEL = SCREEN_WIDTH + 60;
 
   return (
@@ -1311,41 +1281,6 @@ const XMBWave3Background = ({ theme, style }) => {
           })}
         </Animated.View>
       ))}
-      {/* Static connecting lines that fade in/out */}
-      {lines.map(line => {
-        const o1 = orbs[line.o1];
-        const o2 = orbs[line.o2];
-        const wave1 = waves[o1.waveIdx];
-        const wave2 = waves[o2.waveIdx];
-        const p1x = o1.startX;
-        const p1y = SCREEN_HEIGHT * wave1.yOffset + Math.sin(p1x * wave1.frequency + wave1.phase) * wave1.amplitude;
-        const p2x = o2.startX;
-        const p2y = SCREEN_HEIGHT * wave2.yOffset + Math.sin(p2x * wave2.frequency + wave2.phase) * wave2.amplitude;
-        const dx = p2x - p1x;
-        const dy = p2y - p1y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 200) return null;
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        return (
-          <Animated.View
-            key={line.key}
-            style={{
-              position: 'absolute',
-              left: p1x,
-              top: p1y,
-              width: len,
-              height: 0.5,
-              backgroundColor: theme.primaryColor,
-              opacity: lineAnim.interpolate({
-                inputRange: [0, 0.5, 1],
-                outputRange: [line.opacity * 0.3, line.opacity, line.opacity * 0.3],
-              }),
-              transform: [{ rotate: `${angle}deg` }],
-              transformOrigin: 'left center',
-            }}
-          />
-        );
-      })}
       {/* Orbs - each tier travels exactly TRAVEL pixels for seamless wrap */}
       {orbs.map(orb => {
         const wave = waves[orb.waveIdx];
@@ -1398,18 +1333,6 @@ const XMBWave3Background = ({ theme, style }) => {
                       borderColor: theme.primaryColor,
                       backgroundColor: 'transparent',
                     }
-                  : orb.styleType === 'glowing'
-                  ? {
-                      width: orb.size,
-                      height: orb.size,
-                      borderRadius: orb.size,
-                      backgroundColor: theme.primaryColor,
-                      shadowColor: theme.primaryColor,
-                      shadowOffset: { width: 0, height: 0 },
-                      shadowRadius: 16,
-                      shadowOpacity: 1,
-                      elevation: 6,
-                    }
                   : orb.styleType === 'faint'
                   ? {
                       width: orb.size,
@@ -1422,11 +1345,6 @@ const XMBWave3Background = ({ theme, style }) => {
                       height: orb.size,
                       borderRadius: orb.size,
                       backgroundColor: theme.primaryColor,
-                      shadowColor: theme.primaryColor,
-                      shadowOffset: { width: 0, height: 0 },
-                      shadowRadius: 3,
-                      shadowOpacity: 0.4,
-                      elevation: 1,
                     }
               }
             />

@@ -21,7 +21,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <div align="center">
 
-<img src="assets/screenshots/Screenshot_20260627-154157.png" width="270" alt="OPENHONK Home Screen" />
+<img src="assets/screenshots/Screenshot_20260624-000842.png" width="270" alt="OPENHONK Home Screen" />
 
 </div>
 
@@ -62,31 +62,22 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <table>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260626-222230.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260626-222241.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260627-153705.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260627-153734.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260627-153800.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260627-153818.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260627-153844.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260627-153852.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260627-153856.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260627-153909.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260627-153945.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260627-154039.png" width="200" /></td>
-</tr>
-<tr>
-<td><img src="assets/screenshots/Screenshot_20260627-154157.png" width="200" /></td>
+<td><img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" /></td>
 </tr>
 </table>
 
@@ -160,6 +151,7 @@ The signed APK will be generated in the build output directory.
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
 - ✅ Browser bookmark extension
+- ⬜ Port to iOS
 - TBC — see Telegram channel for more
 
 ---
@@ -173,13 +165,14 @@ The signed APK will be generated in the build output directory.
 - Some content used in the app might not reflect the developers' views
 - Do not use this app for your dopamine hits
 - Recommended for 18+ use
-- Caution: Some content may trigger epilepsy — viewer discretion advised
 
 ---
 
 ## 🤝 Help Spread Awareness
 
-OPENHONK funding is out of pocket. It's not people-funded, nor will it ask for donations. But we will ask: if you wish to share the OPENHONK MEME around, feel free to download and print them or share.
+OPENHONK funding is out of pocket. It's not people-funded, nor will it ask for donations. But we will ask: if you wish to share our business cards around, feel free to download and print them.
+
+> Download the front of the card by downloading the banner at the top of the GitHub page.
 
 ---
 
@@ -229,7 +222,7 @@ Followed by the head dev for many years who witnessed the shadowbanning of this 
 - Devin AI
 
 **Countries that assisted development:**
-UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australia · France · Germany · India · Russia - More
+UK · USA · Norway · Mexico · Netherlands · Ireland · Hong Kong · Australia · France · Germany · India · Russia
 
 ---
 

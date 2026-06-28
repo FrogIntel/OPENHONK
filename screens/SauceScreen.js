@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import ThemedBackground from '../components/ThemedBackground';
 import { AnimatedScreenshotImage } from '../components/ScreenshotImage';
+import { preloadCachedForUrls } from '../components/screenshotCache';
 import { appData } from '../data/urls';
 import { getFilteredUrls } from '../utils/filteredData';
 import { searchAllApp } from '../utils/globalSearch';
@@ -31,13 +32,35 @@ const SauceScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
-  const carouselHeight = isLandscape ? 130 : 200;
+  const carouselHeight = isLandscape ? 180 : 320;
   const [searchVisible, setSearchVisible] = useState(false);
   const [currentWebsiteIndex, setCurrentWebsiteIndex] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
   const sauceData = appData.sauce;
   const scrollViewRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const allUrls = [];
+    Object.keys(sauceData).forEach(subCategory => {
+      const categoryData = sauceData[subCategory];
+      if (categoryData && categoryData.urls) {
+        getFilteredUrls(categoryData.urls).forEach(item => {
+          if (item && item.url) allUrls.push(item.url);
+        });
+      } else if (categoryData && !categoryData.urls) {
+        Object.keys(categoryData).forEach(subKey => {
+          const subData = categoryData[subKey];
+          if (subData && subData.urls) {
+            getFilteredUrls(subData.urls).forEach(item => {
+              if (item && item.url) allUrls.push(item.url);
+            });
+          }
+        });
+      }
+    });
+    preloadCachedForUrls(allUrls);
+  }, []);
 
   // Tab swipe navigation
   const screenPanResponder = useRef(
@@ -65,6 +88,18 @@ const SauceScreen = ({ navigation }) => {
         getFilteredUrls(categoryData.urls).forEach(item => {
           if (item && item.url && item.url.trim() !== '') {
             allWebsites.push({ ...item, category: categoryData.title });
+          }
+        });
+      } else if (categoryData && !categoryData.urls) {
+        // Nested subcategories (e.g. restructured qAnon, tacoToppings, news)
+        Object.keys(categoryData).forEach(subKey => {
+          const subData = categoryData[subKey];
+          if (subData && subData.urls) {
+            getFilteredUrls(subData.urls).forEach(item => {
+              if (item && item.url && item.url.trim() !== '') {
+                allWebsites.push({ ...item, category: subData.title });
+              }
+            });
           }
         });
       }
@@ -153,7 +188,13 @@ Download Now:
   };
 
   const openCategory = (categoryKey, categoryTitle) => {
-    navigation.navigate('Category', { categoryKey, categoryTitle, data: sauceData });
+    const catData = sauceData[categoryKey];
+    const isNested = catData && !catData.urls && !catData.title;
+    if (isNested) {
+      navigation.push('Category', { categoryKey, categoryTitle, data: sauceData });
+    } else {
+      navigation.navigate('Category', { categoryKey, categoryTitle, data: sauceData });
+    }
   };
 
   return (
@@ -180,6 +221,7 @@ Download Now:
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
         onOpenUrl={openUrl}
+        navigation={navigation}
         primaryColor={theme.primaryColor}
       />
 
@@ -216,6 +258,32 @@ Download Now:
 
       <ScrollView style={styles.content}>
         {Object.entries(sauceData).map(([key, category]) => {
+          if (!category.urls && !category.title) {
+            // Nested subcategories - count all URLs across subcats
+            let totalCount = 0;
+            let hasNew = false;
+            Object.keys(category).forEach(subKey => {
+              const subData = category[subKey];
+              if (subData && subData.urls) {
+                totalCount += getFilteredUrls(subData.urls).length;
+                if (subData.urls.some(item => isNewContent(item.url))) hasNew = true;
+              }
+            });
+            const displayTitle = key === 'qAnon' ? 'Q + A N O N' : key === 'tacoToppings' ? 'T A C O   T O P P I N G S' : key === 'news' ? 'N E W S' : key.toUpperCase();
+            return (
+            <TouchableOpacity
+              key={key}
+              style={styles.categoryItem}
+              onPress={() => openCategory(key, displayTitle)}
+            >
+              <Text style={styles.categoryTitle}>{displayTitle}</Text>
+              <View style={styles.categoryRow}>
+                <Text style={styles.categoryCount}>{totalCount} items</Text>
+                {hasNew && <View style={styles.newBadge}><Text style={styles.newBadgeText}>NEW</Text></View>}
+              </View>
+            </TouchableOpacity>
+            );
+          }
           const filteredCount = getFilteredUrls(category.urls).length;
           const hasNew = category.urls.some(item => isNewContent(item.url));
           return (
@@ -309,17 +377,17 @@ const styles = StyleSheet.create({
     color: '#ffcc33',
   },
   carouselContainer: {
-    height: 200,
+    height: 320,
     backgroundColor: '#1a1a1a',
     borderBottomWidth: 2,
     borderBottomColor: '#ffcc33',
   },
   carouselScroll: {
-    height: 200,
+    height: 320,
   },
   carouselItem: {
     width: Dimensions.get('window').width,
-    height: 200,
+    height: 320,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0d0d0d',
@@ -327,7 +395,7 @@ const styles = StyleSheet.create({
   carouselImage: {
     position: 'absolute',
     width: Dimensions.get('window').width,
-    height: 200,
+    height: 320,
   },
   carouselOverlay: {
     position: 'absolute',

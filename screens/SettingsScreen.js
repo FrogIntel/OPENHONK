@@ -44,37 +44,41 @@ const subscribeScan = (cb) => {
 
 const collectAllUrls = () => {
   const urls = [];
+  const addUrlsFromCategory = (cat, sectionName) => {
+    if (cat.urls) {
+      cat.urls.forEach((item) => {
+        if (item.url && !item.url.startsWith('file://') && !item.url.startsWith('openhonk://')) {
+          urls.push({ title: item.title, url: item.url, section: cat.title || sectionName });
+        }
+      });
+    } else {
+      Object.entries(cat).forEach(([subKey, subCat]) => {
+        if (subCat && typeof subCat === 'object' && !Array.isArray(subCat)) {
+          addUrlsFromCategory(subCat, sectionName);
+        }
+      });
+    }
+  };
   if (appData.sauce) {
     Object.entries(appData.sauce).forEach(([catKey, cat]) => {
-      if (cat.urls) {
-        cat.urls.forEach((item) => {
-          urls.push({ title: item.title, url: item.url, section: cat.title });
-        });
-      }
+      if (cat && typeof cat === 'object') addUrlsFromCategory(cat, 'Sauce');
     });
   }
   if (appData.breb) {
     Object.entries(appData.breb).forEach(([catKey, cat]) => {
-      if (cat.urls) {
-        cat.urls.forEach((item) => {
-          urls.push({ title: item.title, url: item.url, section: cat.title });
-        });
-      }
+      if (cat && typeof cat === 'object') addUrlsFromCategory(cat, 'Breb');
     });
   }
-  if (appData.frens && appData.frens.urls) {
-    appData.frens.urls.forEach((item) => {
-      urls.push({ title: item.title, url: item.url, section: 'Frens' });
-    });
+  if (appData.frens) {
+    addUrlsFromCategory(appData.frens, 'Frens');
   }
   if (appData.showtime) {
-    Object.keys(appData.showtime).forEach(subCat => {
-      if (appData.showtime[subCat]?.urls) {
-        appData.showtime[subCat].urls.forEach((item) => {
-          urls.push({ title: item.title, url: item.url, section: appData.showtime[subCat].title });
-        });
-      }
+    Object.entries(appData.showtime).forEach(([catKey, cat]) => {
+      if (cat && typeof cat === 'object') addUrlsFromCategory(cat, 'Showtime');
     });
+  }
+  if (appData.notifications) {
+    addUrlsFromCategory(appData.notifications, 'Notifications');
   }
   return urls;
 };
@@ -162,17 +166,22 @@ const SettingsScreen = ({ navigation }) => {
 
   const [storeScreenshots, setStoreScreenshotsState] = useState(false);
   const [cacheCount, setCacheCount] = useState(0);
-  const [cookieReject, setCookieRejectState] = useState(false);
+  const [keepCookies, setKeepCookiesState] = useState(false);
 
   React.useEffect(() => {
     initStoreScreenshots().then(() => {
       setStoreScreenshotsState(isStoreScreenshotsEnabled());
       setCacheCount(getCacheStats().count);
     });
-    AsyncStorage.getItem('@cookie_reject_enabled').then(val => {
-      setCookieRejectState(val === 'true');
+    AsyncStorage.getItem('@keep_cookies').then(val => {
+      setKeepCookiesState(val === 'true');
     });
   }, []);
+
+  const handleToggleKeepCookies = (enabled) => {
+    setKeepCookiesState(enabled);
+    AsyncStorage.setItem('@keep_cookies', enabled ? 'true' : 'false').catch(() => {});
+  };
 
   const handleToggleStoreScreenshots = (enabled) => {
     setStoreScreenshots(enabled);
@@ -180,11 +189,6 @@ const SettingsScreen = ({ navigation }) => {
     if (!enabled) {
       setCacheCount(0);
     }
-  };
-
-  const handleToggleCookieReject = (enabled) => {
-    setCookieRejectState(enabled);
-    AsyncStorage.setItem('@cookie_reject_enabled', enabled ? 'true' : 'false');
   };
 
   const handleClearScreenshotCache = () => {
@@ -474,9 +478,6 @@ const SettingsScreen = ({ navigation }) => {
     try {
       for (const domain of selectedCookies) {
         await clearCookieDomain(domain);
-        if (domain.includes('rumble.com')) {
-          await AsyncStorage.removeItem('@rumble_cookies');
-        }
       }
       await loadCookieDomains();
     } catch (e) {
@@ -502,7 +503,6 @@ const SettingsScreen = ({ navigation }) => {
             setClearingCookies(true);
             try {
               await clearAllCookies();
-              await AsyncStorage.removeItem('@rumble_cookies');
               await loadCookieDomains();
             } catch (e) {
               console.error('Error clearing all cookies:', e);
@@ -584,6 +584,25 @@ const SettingsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Keep Cookies on Restart Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Cookie Persistence</Text>
+            <Text style={styles.sectionDescription}>
+              Keep cookies across app restarts so you stay logged in and Cloudflare challenges persist. When disabled, cookies are cleared on exit (incognito mode).
+            </Text>
+            <TouchableOpacity
+              style={[styles.toggleRow, { borderColor: theme.primaryColor }]}
+              onPress={() => handleToggleKeepCookies(!keepCookies)}
+            >
+              <View style={[styles.toggleSwitch, keepCookies && { backgroundColor: theme.primaryColor }]}>
+                <View style={[styles.toggleKnob, keepCookies && styles.toggleKnobActive]} />
+              </View>
+              <Text style={[styles.toggleLabel, { color: theme.primaryColor }]}>
+                {keepCookies ? 'KEEP ON RESTART' : 'CLEARED ON EXIT'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Screenshot Cache Section */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Screenshot Cache</Text>
@@ -616,26 +635,6 @@ const SettingsScreen = ({ navigation }) => {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
-
-          {/* Cookie Reject Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Auto-Reject Cookie Banners</Text>
-            <Text style={styles.sectionDescription}>
-              Automatically reject cookie consent dialogs on websites. Detects and clicks 'Reject All' / 'Decline' buttons on 30+ consent platforms. Falls back to hiding the banner if no reject button is found.
-            </Text>
-
-            <TouchableOpacity
-              style={[styles.toggleRow, { borderColor: theme.primaryColor }]}
-              onPress={() => handleToggleCookieReject(!cookieReject)}
-            >
-              <View style={[styles.toggleSwitch, cookieReject && { backgroundColor: theme.primaryColor }]}>
-                <View style={[styles.toggleKnob, cookieReject && styles.toggleKnobActive]} />
-              </View>
-              <Text style={[styles.toggleLabel, { color: theme.primaryColor }]}>
-                {cookieReject ? 'ENABLED' : 'DISABLED'}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {/* URL Liveness Section */}

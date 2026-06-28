@@ -155,7 +155,7 @@ const SideMenu = ({ visible, onClose, navigation }) => {
             resizeMode="stretch"
           />
           <ScrollView style={styles.menuScroll} contentContainerStyle={{ paddingBottom: 100 }}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('HomeTab'); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('MainTabs', { screen: 'HomeTab' }); }}>
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>HOME</Text>
             </TouchableOpacity>
@@ -163,19 +163,19 @@ const SideMenu = ({ visible, onClose, navigation }) => {
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>REEL</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('BrebTab'); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('MainTabs', { screen: 'BrebTab' }); }}>
               <Image source={require('../assets/app3679992_mb_brebit1292284.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>BREB</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('SauceTab'); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('MainTabs', { screen: 'SauceTab' }); }}>
               <Image source={require('../assets/app3679992_mb_sauceit1292285.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SAUCE</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('FrensTab'); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('MainTabs', { screen: 'FrensTab' }); }}>
               <Image source={require('../assets/frens_icon.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>FRENS</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('ShowtimeTab'); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('MainTabs', { screen: 'ShowtimeTab' }); }}>
               <Image source={require('../assets/showtime_icon.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SHOWTIME</Text>
             </TouchableOpacity>

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect, forwardRef, memo } from 'react';
+import { Animated, StyleSheet, Image, View } from 'react-native';
 import { getCachedSource, markScreenshotFailed, markFaviconFailed, markScreenshotSuccess, removeCachedScreenshot } from './screenshotCache';
 import LoadingBar from './LoadingBar';
 
@@ -7,13 +7,14 @@ const FALLBACK_IMAGE = require('../assets/fallback_icon.png');
 
 const RETRY_DELAYS = [3000, 6000, 10000];
 
-const ScreenshotImage = ({ url, style, resizeMode = 'cover', crossfade = false, fadeDelay = 0 }) => {
+const ScreenshotImage = memo(({ url, style, resizeMode = 'cover', crossfade = false, fadeDelay = 0, stagger = false, staggerIndex = -1 }) => {
   const [tick, setTick] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const loadedRef = useRef(false);
   const retryTimer = useRef(null);
+  const staggerDelay = useRef(staggerIndex >= 0 ? Math.min(staggerIndex * 30, 600) : (stagger ? Math.random() * 400 : 0)).current;
 
   useEffect(() => {
     loadedRef.current = false;
@@ -27,14 +28,18 @@ const ScreenshotImage = ({ url, style, resizeMode = 'cover', crossfade = false, 
   const cached = getCachedSource(url);
   const source = cached.source;
 
-  const handleLoad = (e) => {
-    loadedRef.current = true;
+  const fadeIn = () => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 400,
-      delay: fadeDelay,
+      duration: 250,
+      delay: staggerDelay,
       useNativeDriver: true,
     }).start();
+  };
+
+  const handleLoad = (e) => {
+    loadedRef.current = true;
+    fadeIn();
     setLoaded(true);
     if (cached.type === 'screenshot') {
       const w = e?.nativeEvent?.source?.width;
@@ -60,21 +65,16 @@ const ScreenshotImage = ({ url, style, resizeMode = 'cover', crossfade = false, 
       markFaviconFailed(url);
     }
     setTick(t => t + 1);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      delay: fadeDelay,
-      useNativeDriver: true,
-    }).start();
+    fadeIn();
     setLoaded(true);
   };
 
   const isFallback = cached.type === 'fallback';
 
   return (
-    <Animated.View style={[style, { overflow: 'hidden', backgroundColor: isFallback ? '#f7bf1e' : '#0d0d0d' }]}>
+    <View style={[style, { overflow: 'hidden', backgroundColor: isFallback ? '#f7bf1e' : '#0d0d0d' }]}>
       <Animated.View style={[styles.imageWrapper, { opacity: fadeAnim }, isFallback && styles.centeredImage]}>
-        <Animated.Image
+        <Image
           key={tick}
           source={source}
           style={[isFallback ? styles.fallbackImage : StyleSheet.absoluteFill]}
@@ -86,9 +86,9 @@ const ScreenshotImage = ({ url, style, resizeMode = 'cover', crossfade = false, 
         />
       </Animated.View>
       <LoadingBar visible={!loaded} />
-    </Animated.View>
+    </View>
   );
-};
+});
 
 const AnimatedScreenshotImage = forwardRef(({ url, style, resizeMode = 'cover', crossfade = false, fadeDelay = 0 }, ref) => {
   const [tick, setTick] = useState(0);

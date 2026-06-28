@@ -138,6 +138,7 @@ Download Now:
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
         onOpenUrl={(url, title) => openUrl(url)}
+        navigation={navigation}
         primaryColor="#ffcc33"
       />
 

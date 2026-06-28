@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.ViewManager
 
 class BackgroundAudioPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return listOf(BackgroundAudioModule(reactContext), CookiePersistModule(reactContext))
+        return listOf(BackgroundAudioModule(reactContext), CookiePersistModule(reactContext), OrientationModule(reactContext))
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

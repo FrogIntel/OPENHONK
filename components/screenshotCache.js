@@ -8,8 +8,8 @@ const MIN_SCREENSHOT_WIDTH = 200;
 const MIN_SCREENSHOT_HEIGHT = 150;
 
 const SCREENSHOT_SERVICES = [
+  (url) => `https://image.thum.io/get/width/320/crop/600/viewport/800/${encodeURIComponent(url)}`,
   (url) => `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`,
-  (url) => `https://image.thum.io/get/width/400/crop/800/viewport/1200/${encodeURIComponent(url)}`,
 ];
 
 const getScreenshotUrl = (url, serviceIndex = 0) => {
@@ -224,9 +224,9 @@ export const clearFailedCache = () => {
   queuedUrls.clear();
 };
 
-const MAX_CONCURRENT = 3;
-const REQUEST_DELAY_MS = 1000;
-const PREFETCH_TIMEOUT_MS = 30000;
+const MAX_CONCURRENT = 6;
+const REQUEST_DELAY_MS = 200;
+const PREFETCH_TIMEOUT_MS = 10000;
 const queue = [];
 let activeCount = 0;
 let lastRequestTime = 0;
@@ -284,7 +284,6 @@ const prefetchSingleService = (url, serviceIndex) => {
   const screenshotUrl = getScreenshotUrl(url, serviceIndex);
   if (!screenshotUrl) return Promise.reject(new Error('no url'));
   return prefetchWithTimeout(screenshotUrl)
-    .then(() => validateImage(screenshotUrl))
     .then(() => ({ serviceIndex, screenshotUrl }));
 };
 
@@ -429,6 +428,49 @@ export const backgroundPrefetchAll = (urls) => {
   });
 };
 
+export const preloadAllCachedScreenshots = async () => {
+  const urls = [];
+  for (const [url, data] of cachedScreenshots.entries()) {
+    if (data?.screenshotUrl) {
+      urls.push(data.screenshotUrl);
+    }
+    const faviconUrl = getFaviconUrl(url);
+    if (faviconUrl && !failedFavicons.has(url)) {
+      urls.push(faviconUrl);
+    }
+  }
+  const CONCURRENT = 12;
+  for (let i = 0; i < urls.length; i += CONCURRENT) {
+    const batch = urls.slice(i, i + CONCURRENT);
+    await Promise.all(batch.map(u => Image.prefetch(u).catch(() => {})));
+  }
+};
+
+export const preloadCachedForUrls = (urlList) => {
+  if (!urlList || urlList.length === 0) return;
+  const urls = [];
+  for (const url of urlList) {
+    if (!url) continue;
+    const data = cachedScreenshots.get(url);
+    if (data?.screenshotUrl) {
+      urls.push(data.screenshotUrl);
+    }
+    const faviconUrl = getFaviconUrl(url);
+    if (faviconUrl && !failedFavicons.has(url)) {
+      urls.push(faviconUrl);
+    }
+  }
+  const CONCURRENT = 12;
+  for (let i = 0; i < urls.length; i += CONCURRENT) {
+    const batch = urls.slice(i, i + CONCURRENT);
+    Promise.all(batch.map(u => Image.prefetch(u).catch(() => {})));
+  }
+};
+
+export const getFailedUrls = () => {
+  return [...failedScreenshots];
+};
+
 export const retryFailedScreenshots = () => {
   const now = Date.now();
   for (const [url, failedAt] of failedTimestamps.entries()) {
@@ -444,4 +486,11 @@ export const startRetryTimer = () => {
   retryTimer = setInterval(() => {
     retryFailedScreenshots();
   }, RETRY_INTERVAL_MS);
+};
+
+export const stopRetryTimer = () => {
+  if (retryTimer) {
+    clearInterval(retryTimer);
+    retryTimer = null;
+  }
 };

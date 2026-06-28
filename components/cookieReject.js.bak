@@ -1,0 +1,452 @@
+export const getCookieRejectJS = () => `
+(function() {
+  var CLICKABLE_SELECTOR = [
+    'button',
+    '[role="button"]',
+    'a[href]',
+    'input[type="button"]',
+    'input[type="submit"]',
+    'summary',
+    'div[role="button"]',
+    'span[role="button"]',
+    '[onclick]'
+  ].join(', ');
+
+  var COOKIE_CONTAINER_SELECTORS = [
+    '#onetrust-banner-sdk',
+    '#onetrust-consent-sdk',
+    '.onetrust-pc-dark-filter',
+    '#didomi-host',
+    '#didomi-popup',
+    '.qc-cmp2-container',
+    '[id*="cookie" i]',
+    '[class*="cookie" i]',
+    '[id*="consent" i]',
+    '[class*="consent" i]',
+    '[id*="gdpr" i]',
+    '[class*="gdpr" i]',
+    '[id*="privacy" i]',
+    '[class*="privacy" i]',
+    '[id*="sp_message" i]',
+    '[class*="sp_message" i]',
+    '[id*="trustarc" i]',
+    '[class*="trustarc" i]',
+    '[aria-label*="cookie" i]',
+    '[role="dialog"]',
+    'dialog'
+  ].join(', ');
+
+  var KNOWN_REJECT_SELECTORS = [
+    '#onetrust-reject-all-handler',
+    'button#onetrust-reject-all-handler',
+    'button[aria-label*="reject" i]',
+    'button[aria-label*="decline" i]',
+    'button[aria-label*="deny" i]',
+    'button[aria-label*="refuse" i]',
+    'button[title*="reject" i]',
+    'button[title*="decline" i]',
+    '[id*="didomi-notice-disagree" i]',
+    '[id*="disagree" i]',
+    '[id*="reject" i]',
+    '[class*="reject" i]',
+    '[id*="deny" i]',
+    '[class*="deny" i]',
+    '[id*="decline" i]',
+    '[class*="decline" i]',
+    '[data-testid*="reject" i]',
+    '[data-testid*="decline" i]',
+    '[data-testid*="deny" i]',
+    '[data-cy*="reject" i]',
+    '[data-cy*="decline" i]',
+    '[data-action*="reject" i]',
+    '[data-action*="deny" i]',
+    '[data-action*="decline" i]',
+    '[data-role="reject"]',
+    '[data-role="decline"]',
+    '#sp_reject_optin',
+    '.sp_choice_type_REJECT',
+    '#uc-btn-deny-banner',
+    '#uc-btn-deny',
+    '#cmplz-reject-all-button',
+    '.cmplz-btn-deny',
+    '#CybotCookiebotDialogBodyButtonDecline',
+    '#CybotCookiebotDialogBodyLevelButtonLevelOptinDeclineAll',
+    '#truste-consent-reject',
+    '.truste-consent-reject',
+    '#consent_prompt_decline',
+    '.cli-reject-btn',
+    '#iubenda-cs-reject-btn',
+    '.iubenda-cs-reject-btn',
+    '#borlabs-cookie-btn-reject',
+    '.borlabs-cookie-btn-reject',
+    '#cookieyes-btn-reject',
+    '.cookieyes-btn-reject'
+  ];
+
+  var COOKIE_CONTEXT_PATTERNS = [
+    /\\bcookies?\\b/i,
+    /\\bconsent\\b/i,
+    /\\bgdpr\\b/i,
+    /\\btracking\\b/i,
+    /\\badvertising\\b/i,
+    /\\blegitimate interest\\b/i,
+    /\\bpersonal data\\b/i,
+    /\\bvendors?\\b/i,
+    /\\bpartners?\\b/i,
+    /\\bcookie settings?\\b/i,
+    /\\bdo not sell\\b/i,
+    /\\bprivacy\\b/i
+  ];
+
+  var STRONG_REJECT_PATTERNS = [
+    /\\breject all\\b/i,
+    /\\bdecline all\\b/i,
+    /\\bdeny all\\b/i,
+    /\\breject optional\\b/i,
+    /\\bonly necessary\\b/i,
+    /\\bonly essential\\b/i,
+    /\\bnecessary cookies only\\b/i,
+    /\\bessential cookies only\\b/i,
+    /\\bcontinue without accepting\\b/i,
+    /\\bdo not accept\\b/i,
+    /\\bdo not allow\\b/i,
+    /\\bdo not sell\\b/i,
+    /\\btout refuser\\b/i,
+    /\\balles ablehnen\\b/i,
+    /\\brechazar todo\\b/i,
+    /\\breject cookies\\b/i,
+    /\\brefuse all\\b/i
+  ];
+
+  var REJECT_PATTERNS = [
+    /\\breject\\b/i,
+    /\\bdecline\\b/i,
+    /\\bdeny\\b/i,
+    /\\brefuse\\b/i,
+    /\\bdisagree\\b/i,
+    /\\bopt ?out\\b/i,
+    /\\bno thanks?\\b/i,
+    /\\bablehnen\\b/i,
+    /\\brefuser\\b/i,
+    /\\brechazar\\b/i,
+    /\\brifiuta\\b/i,
+    /\\bafwijzen\\b/i,
+    /\\bweigeren\\b/i
+  ];
+
+  var DISMISS_PATTERNS = [
+    /\\bclose\\b/i,
+    /\\bdismiss\\b/i,
+    /\\bskip\\b/i,
+    /\\bcontinue without accepting\\b/i,
+    /^\\xd7$/
+  ];
+
+  var ACCEPT_PATTERNS = [
+    /\\baccept\\b/i,
+    /\\ballow\\b/i,
+    /\\bagree\\b/i,
+    /\\bconsent\\b/i,
+    /\\bok(ay)?\\b/i,
+    /\\bgot it\\b/i,
+    /\\byes\\b/i,
+    /\\benable\\b/i
+  ];
+
+  var clickedElements = [];
+  var clicksPerformed = 0;
+  var running = false;
+
+  function normalizeText(value) {
+    return String(value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+  }
+
+  function getClassName(el) {
+    if (!el) return '';
+    if (typeof el.className === 'string') return el.className;
+    if (typeof (el.className && el.className.baseVal) === 'string') return el.className.baseVal;
+    return '';
+  }
+
+  function getElementSignals(el) {
+    if (!(el instanceof Element)) return '';
+    var text = el.innerText || el.textContent || '';
+    var attrs = [
+      el.getAttribute('aria-label'),
+      el.getAttribute('title'),
+      el.getAttribute('value'),
+      el.getAttribute('name'),
+      el.id,
+      getClassName(el)
+    ];
+    return normalizeText([text].concat(attrs.filter(Boolean)).join(' '));
+  }
+
+  function matchesAny(text, patterns) {
+    if (!text) return false;
+    for (var i = 0; i < patterns.length; i++) {
+      if (patterns[i].test(text)) return true;
+    }
+    return false;
+  }
+
+  function isVisible(el) {
+    if (!(el instanceof Element) || !el.isConnected) return false;
+    try {
+      var style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return false;
+      if (style.opacity === '0') return false;
+      if (el.offsetWidth === 0 && el.offsetHeight === 0) return false;
+      return true;
+    } catch(e) { return false; }
+  }
+
+  function isClickable(el) {
+    if (!el || !isVisible(el)) return false;
+    var tag = el.tagName.toLowerCase();
+    return tag === 'button' || tag === 'a' || tag === 'input' || tag === 'summary' ||
+           el.getAttribute('role') === 'button' || el.hasAttribute('onclick') ||
+           el.getAttribute('role') === 'link';
+  }
+
+  function hasCookieContext(el) {
+    if (!(el instanceof Element)) return false;
+    var signals = normalizeText(getElementSignals(el));
+    if (matchesAny(signals, COOKIE_CONTEXT_PATTERNS)) return true;
+    var ancestor = el;
+    for (var depth = 0; depth < 6 && ancestor; depth++) {
+      var ancestorSignals = getElementSignals(ancestor);
+      if (matchesAny(ancestorSignals, COOKIE_CONTEXT_PATTERNS)) return true;
+      ancestor = ancestor.parentElement;
+    }
+    return false;
+  }
+
+  function alreadyClicked(el) {
+    for (var i = 0; i < clickedElements.length; i++) {
+      if (clickedElements[i] === el) return true;
+    }
+    return false;
+  }
+
+  function clickCandidate(el) {
+    if (!isClickable(el) || alreadyClicked(el)) return false;
+    try { el.focus({ preventScroll: true }); } catch(e) {}
+    var events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+    for (var i = 0; i < events.length; i++) {
+      try {
+        el.dispatchEvent(new MouseEvent(events[i], {
+          bubbles: true, cancelable: true, view: window, buttons: 1
+        }));
+      } catch(e) {}
+    }
+    try { el.click(); } catch(e) {}
+    clickedElements.push(el);
+    clicksPerformed++;
+    return true;
+  }
+
+  function collectRejectCandidates() {
+    var found = [];
+
+    // 1. Known reject selectors
+    for (var i = 0; i < KNOWN_REJECT_SELECTORS.length; i++) {
+      try {
+        var els = document.querySelectorAll(KNOWN_REJECT_SELECTORS[i]);
+        for (var j = 0; j < els.length; j++) {
+          if (isVisible(els[j]) && !alreadyClicked(els[j])) {
+            found.push({ el: els[j], score: 100 });
+          }
+        }
+      } catch(e) {}
+    }
+
+    // 2. Search all clickable elements with cookie context
+    var clickables = document.querySelectorAll(CLICKABLE_SELECTOR);
+    for (var k = 0; k < clickables.length; k++) {
+      var el = clickables[k];
+      if (!isClickable(el) || alreadyClicked(el)) continue;
+      var signals = getElementSignals(el);
+      if (!signals) continue;
+      if (!hasCookieContext(el)) continue;
+
+      var score = 0;
+      if (matchesAny(signals, STRONG_REJECT_PATTERNS)) score += 20;
+      if (matchesAny(signals, REJECT_PATTERNS)) score += 10;
+      if (matchesAny(signals, DISMISS_PATTERNS)) score += 3;
+      if (matchesAny(signals, ACCEPT_PATTERNS)) score -= 15;
+
+      if (score >= 8) {
+        found.push({ el: el, score: score });
+      }
+    }
+
+    // 3. Search shadow DOM hosts
+    var allEls = document.querySelectorAll('*');
+    for (var m = 0; m < allEls.length; m++) {
+      if (allEls[m].shadowRoot) {
+        try {
+          var shadowClickables = allEls[m].shadowRoot.querySelectorAll(CLICKABLE_SELECTOR);
+          for (var n = 0; n < shadowClickables.length; n++) {
+            var sEl = shadowClickables[n];
+            if (!isVisible(sEl)) continue;
+            var sSignals = getElementSignals(sEl);
+            if (!sSignals) continue;
+            if (matchesAny(sSignals, STRONG_REJECT_PATTERNS) || matchesAny(sSignals, REJECT_PATTERNS)) {
+              if (!alreadyClicked(sEl)) {
+                found.push({ el: sEl, score: 50 });
+              }
+            }
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Sort by score descending
+    found.sort(function(a, b) { return b.score - a.score; });
+    return found.map(function(item) { return item.el; });
+  }
+
+  function collectDismissCandidates() {
+    var found = [];
+    var clickables = document.querySelectorAll(CLICKABLE_SELECTOR);
+    for (var i = 0; i < clickables.length; i++) {
+      var el = clickables[i];
+      if (!isClickable(el) || alreadyClicked(el)) continue;
+      var signals = getElementSignals(el);
+      if (!signals) continue;
+      if (!hasCookieContext(el)) continue;
+      if (matchesAny(signals, DISMISS_PATTERNS)) {
+        found.push(el);
+      }
+    }
+    return found;
+  }
+
+  function unlockScrollIfNeeded() {
+    var html = document.documentElement;
+    if (!html) return;
+    try {
+      var htmlStyle = window.getComputedStyle(html);
+      if (htmlStyle.overflow === 'hidden') {
+        html.style.setProperty('overflow', 'auto', 'important');
+      }
+      if (document.body) {
+        var bodyStyle = window.getComputedStyle(document.body);
+        if (bodyStyle.overflow === 'hidden') {
+          document.body.style.setProperty('overflow', 'auto', 'important');
+        }
+      }
+    } catch(e) {}
+  }
+
+  function hideResidualOverlays() {
+    var overlaySelector = [
+      '[id*="cookie" i]',
+      '[class*="cookie" i]',
+      '[id*="consent" i]',
+      '[class*="consent" i]',
+      '[id*="onetrust" i]',
+      '[class*="onetrust" i]',
+      '[id*="didomi" i]',
+      '[class*="didomi" i]',
+      '[id*="sp_message" i]',
+      '[class*="sp_message" i]',
+      'dialog',
+      '[role="dialog"]'
+    ].join(', ');
+
+    var overlays = [];
+    try { overlays = document.querySelectorAll(overlaySelector); } catch(e) {}
+
+    var hidden = 0;
+    for (var i = 0; i < overlays.length; i++) {
+      if (hidden >= 4) break;
+      var el = overlays[i];
+      if (!isVisible(el)) continue;
+      try {
+        var style = window.getComputedStyle(el);
+        if (style.position !== 'fixed' && style.position !== 'sticky') continue;
+        var rect = el.getBoundingClientRect();
+        if (rect.width < window.innerWidth * 0.65 || rect.height < 80) continue;
+        var signals = getElementSignals(el);
+        if (!matchesAny(signals, COOKIE_CONTEXT_PATTERNS)) continue;
+        el.style.setProperty('display', 'none', 'important');
+        hidden++;
+      } catch(e) {}
+    }
+    unlockScrollIfNeeded();
+  }
+
+  function runScan() {
+    if (running || clicksPerformed >= 12) return;
+    running = true;
+    try {
+      var rejectCandidates = collectRejectCandidates();
+      var clickedSomething = false;
+
+      for (var i = 0; i < Math.min(rejectCandidates.length, 3); i++) {
+        if (clicksPerformed >= 12) break;
+        if (clickCandidate(rejectCandidates[i])) {
+          clickedSomething = true;
+        }
+      }
+
+      if (!clickedSomething) {
+        var dismissCandidates = collectDismissCandidates();
+        if (dismissCandidates.length > 0) {
+          clickedSomething = clickCandidate(dismissCandidates[0]);
+        }
+      }
+
+      if (clickedSomething) {
+        setTimeout(hideResidualOverlays, 300);
+        setTimeout(runScan, 850);
+      } else {
+        hideResidualOverlays();
+      }
+    } finally {
+      running = false;
+    }
+  }
+
+  var scanTimer = null;
+  function scheduleScan() {
+    clearTimeout(scanTimer);
+    scanTimer = setTimeout(runScan, 250);
+  }
+
+  // Initial scan
+  runScan();
+
+  // MutationObserver for dynamically injected banners
+  var observer = new MutationObserver(function(mutations) {
+    for (var i = 0; i < mutations.length; i++) {
+      if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
+        scheduleScan();
+        break;
+      }
+    }
+  });
+  observer.observe(document.documentElement || document.body, {
+    childList: true, subtree: true
+  });
+
+  // Periodic polling for 15 seconds
+  var pollCount = 0;
+  var pollTimer = setInterval(function() {
+    if (clicksPerformed > 0 || ++pollCount > 25) {
+      clearInterval(pollTimer);
+      return;
+    }
+    runScan();
+  }, 600);
+
+  // Final cleanup after 15 seconds
+  setTimeout(function() {
+    clearInterval(pollTimer);
+    observer.disconnect();
+    hideResidualOverlays();
+  }, 15000);
+})();
+`;

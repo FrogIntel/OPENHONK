@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import ThemedBackground from '../components/ThemedBackground';
 import { AnimatedScreenshotImage } from '../components/ScreenshotImage';
 import ScreenshotImage from '../components/ScreenshotImage';
+import { preloadCachedForUrls } from '../components/screenshotCache';
 import { appData } from '../data/urls';
 import { getFilteredUrls, refreshRemovedUrls } from '../utils/filteredData';
 import { searchAllApp } from '../utils/globalSearch';
@@ -32,7 +33,7 @@ const ShowtimeScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
-  const carouselHeight = isLandscape ? 130 : 200;
+  const carouselHeight = isLandscape ? 180 : 320;
   const [searchVisible, setSearchVisible] = useState(false);
   const [currentWebsiteIndex, setCurrentWebsiteIndex] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -41,6 +42,19 @@ const ShowtimeScreen = ({ navigation }) => {
   );
   const scrollViewRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const allUrls = [];
+    Object.keys(showtimeData).forEach(subCategory => {
+      const categoryData = showtimeData[subCategory];
+      if (categoryData && categoryData.urls) {
+        getFilteredUrls(categoryData.urls).forEach(item => {
+          if (item && item.url) allUrls.push(item.url);
+        });
+      }
+    });
+    preloadCachedForUrls(allUrls);
+  }, []);
 
   // Tab swipe navigation
   const screenPanResponder = useRef(
@@ -193,6 +207,7 @@ Download Now:
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
         onOpenUrl={openUrl}
+        navigation={navigation}
         primaryColor={theme.primaryColor}
       />
 
@@ -323,17 +338,17 @@ const styles = StyleSheet.create({
     color: '#ffcc33',
   },
   carouselContainer: {
-    height: 200,
+    height: 320,
     backgroundColor: '#1a1a1a',
     borderBottomWidth: 2,
     borderBottomColor: '#ffcc33',
   },
   carouselScroll: {
-    height: 200,
+    height: 320,
   },
   carouselItem: {
     width: Dimensions.get('window').width,
-    height: 200,
+    height: 320,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0d0d0d',
@@ -341,7 +356,7 @@ const styles = StyleSheet.create({
   carouselImage: {
     position: 'absolute',
     width: Dimensions.get('window').width,
-    height: 200,
+    height: 320,
   },
   carouselOverlay: {
     position: 'absolute',

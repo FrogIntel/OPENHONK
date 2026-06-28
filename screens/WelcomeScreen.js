@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar, Image, Animated, Easing, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar, Image, Animated, Easing, Dimensions, BackHandler } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCachedSource, initStoreScreenshots, isStoreScreenshotsEnabled, setStoreScreenshots } from '../components/screenshotCache';
+import { requestUnrestrictedBattery, isBatteryUnrestricted, requestNotificationPermission, isNotificationPermissionGranted } from '../utils/backgroundAudio';
 import { appData } from '../data/urls';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -13,6 +14,10 @@ const WelcomeScreen = ({ navigation }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [cacheReady, setCacheReady] = useState(false);
   const [cacheScreenshots, setCacheScreenshots] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [keepCookies, setKeepCookies] = useState(false);
+  const [batteryGranted, setBatteryGranted] = useState(false);
+  const [notifGranted, setNotifGranted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const swipeAnim = useRef(new Animated.Value(0)).current;
@@ -26,12 +31,18 @@ const WelcomeScreen = ({ navigation }) => {
     { icon: '🔒', title: 'Privacy & Security', desc: 'WebView runs in incognito mode — sessions clear when you close.\nHTTP sites show a red badge and block logins.\nHTTPS sites show a green badge.' },
     { icon: '🎬', title: 'Background Playback', desc: 'Videos and audio keep playing when you switch apps or turn off the screen.' },
     { icon: '🛡️', title: 'AdBlock Built-in', desc: 'Ads are automatically blocked across all websites. The block list updates daily.' },
+    { icon: '⚡', title: 'Permissions', desc: 'Grant unrestricted battery access so background playback isn\'t stopped by the system.', permissionsStep: true },
   ];
 
   useEffect(() => {
     initStoreScreenshots().then(() => {
       setCacheScreenshots(isStoreScreenshotsEnabled());
       setCacheReady(true);
+    });
+    isBatteryUnrestricted().then(setBatteryGranted);
+    isNotificationPermissionGranted().then(setNotifGranted);
+    AsyncStorage.getItem('@keep_cookies').then(val => {
+      setKeepCookies(val === 'true');
     });
     if (Platform.OS === 'web') {
       navigation.replace('MainTabs');
@@ -64,9 +75,12 @@ const WelcomeScreen = ({ navigation }) => {
 
   const checkWelcomeShown = async () => {
     try {
-      const value = await AsyncStorage.getItem('welcomeShown');
-      if (value === 'true') {
+      const welcomeShown = await AsyncStorage.getItem('welcomeShown');
+      const ageConfirmedV11 = await AsyncStorage.getItem('ageConfirmed_v11');
+      if (welcomeShown === 'true' && ageConfirmedV11 === 'true') {
         navigation.replace('MainTabs');
+      } else if (welcomeShown === 'true' && ageConfirmedV11 !== 'true') {
+        setCurrentStep(steps.length - 1);
       }
     } catch (error) {
       console.error('Error checking welcome status:', error);
@@ -75,9 +89,11 @@ const WelcomeScreen = ({ navigation }) => {
 
   const handleContinue = async () => {
     try {
+      if (!ageConfirmed) return;
       if (dontShowAgain) {
         await AsyncStorage.setItem('welcomeShown', 'true');
       }
+      await AsyncStorage.setItem('ageConfirmed_v11', 'true');
       navigation.replace('MainTabs');
     } catch (error) {
       console.error('Error in handleContinue:', error);
@@ -93,8 +109,23 @@ const WelcomeScreen = ({ navigation }) => {
   };
 
   const handleSkip = () => {
+    if (!ageConfirmed) {
+      BackHandler.exitApp();
+      return;
+    }
     handleContinue();
   };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!ageConfirmed) {
+        BackHandler.exitApp();
+        return true;
+      }
+      return false;
+    });
+    return () => backHandler.remove();
+  }, [ageConfirmed]);
 
   const preloadUrls = useMemo(() => {
     const urls = [appData.homepage];
@@ -153,7 +184,11 @@ const WelcomeScreen = ({ navigation }) => {
       <View style={styles.glassAccent} />
 
       {/* Skip button */}
-      <TouchableOpacity style={[styles.skipButton, { top: insets.top + 15 }]} onPress={handleSkip}>
+      <TouchableOpacity
+        style={[styles.skipButton, { top: insets.top + 15, opacity: ageConfirmed ? 1 : 0.3 }]}
+        onPress={handleSkip}
+        disabled={!ageConfirmed}
+      >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
 
@@ -237,6 +272,41 @@ const WelcomeScreen = ({ navigation }) => {
           {currentStep === 0 && (
             <Text style={styles.firstRunNote}>🕔 Menus may take longer to load on first run. If issues, close & restart app.</Text>
           )}
+
+          {/* Permissions request buttons on permissions step */}
+          {step.permissionsStep && (
+            <View style={styles.permissionsContainer}>
+              <TouchableOpacity
+                style={[styles.permissionButton, notifGranted && styles.permissionGranted]}
+                onPress={async () => {
+                  requestNotificationPermission();
+                  setTimeout(async () => {
+                    const granted = await isNotificationPermissionGranted();
+                    setNotifGranted(granted);
+                  }, 500);
+                }}
+              >
+                <Text style={styles.permissionButtonText}>
+                  {notifGranted ? '✓ Notifications Enabled' : 'Enable Notifications'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.permissionButton, batteryGranted && styles.permissionGranted]}
+                onPress={async () => {
+                  requestUnrestrictedBattery();
+                  setTimeout(async () => {
+                    const granted = await isBatteryUnrestricted();
+                    setBatteryGranted(granted);
+                  }, 500);
+                }}
+              >
+                <Text style={styles.permissionButtonText}>
+                  {batteryGranted ? '✓ Battery Unrestricted' : 'Grant Unrestricted Battery'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </Animated.View>
       </View>
 
@@ -244,34 +314,66 @@ const WelcomeScreen = ({ navigation }) => {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
         {/* Checkboxes on last step */}
         {isLastStep && (
-          <View style={styles.checkboxRow}>
-            <View style={styles.checkboxContainer}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() => setDontShowAgain(!dontShowAgain)}
-              >
+          <View style={styles.checkboxColumn}>
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setAgeConfirmed(!ageConfirmed)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.checkbox}>
+                <View style={[styles.checkboxInner, ageConfirmed && styles.checkboxChecked]}>
+                  {ageConfirmed && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </View>
+              <Text style={styles.checkboxLabel}>Tick to confirm you are 18+</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setDontShowAgain(!dontShowAgain)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.checkbox}>
                 <View style={[styles.checkboxInner, dontShowAgain && styles.checkboxChecked]}>
                   {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-              </TouchableOpacity>
+              </View>
               <Text style={styles.checkboxLabel}>Don't show again</Text>
-            </View>
+            </TouchableOpacity>
 
-            <View style={styles.checkboxContainer}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() => {
-                  const next = !cacheScreenshots;
-                  setCacheScreenshots(next);
-                  setStoreScreenshots(next);
-                }}
-              >
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => {
+                const next = !cacheScreenshots;
+                setCacheScreenshots(next);
+                setStoreScreenshots(next);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.checkbox}>
                 <View style={[styles.checkboxInner, cacheScreenshots && styles.checkboxChecked]}>
                   {cacheScreenshots && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-              </TouchableOpacity>
+              </View>
               <Text style={styles.checkboxLabel}>Cache screenshots</Text>
-            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => {
+                const next = !keepCookies;
+                setKeepCookies(next);
+                AsyncStorage.setItem('@keep_cookies', next ? 'true' : 'false');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.checkbox}>
+                <View style={[styles.checkboxInner, keepCookies && styles.checkboxChecked]}>
+                  {keepCookies && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </View>
+              <Text style={styles.checkboxLabel}>Keep cookies (stay logged in)</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -281,8 +383,12 @@ const WelcomeScreen = ({ navigation }) => {
               <Text style={styles.backButtonText}>← Back</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>{isLastStep ? 'Get Started' : 'Next →'}</Text>
+          <TouchableOpacity
+            style={[styles.nextButton, isLastStep && !ageConfirmed && { backgroundColor: '#444444' }]}
+            onPress={handleNext}
+            disabled={isLastStep && !ageConfirmed}
+          >
+            <Text style={[styles.nextButtonText, isLastStep && !ageConfirmed && { color: '#888888' }]}>{isLastStep ? 'Get Started' : 'Next →'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -423,6 +529,30 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 15,
   },
+  permissionButton: {
+    marginTop: 12,
+    paddingHorizontal: 30,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ffcc33',
+    backgroundColor: 'transparent',
+  },
+  permissionsContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  permissionGranted: {
+    backgroundColor: '#30d4af',
+    borderColor: '#30d4af',
+  },
+  permissionButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffcc33',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
   vpnNote: {
     fontSize: 14,
     color: '#ff6b6b',
@@ -447,6 +577,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingTop: 15,
   },
+  checkboxColumn: {
+    alignItems: 'center',
+    marginBottom: 15,
+    marginTop: 20,
+  },
   checkboxRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -456,6 +591,7 @@ const styles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 8,
   },
   checkbox: {
     marginRight: 8,

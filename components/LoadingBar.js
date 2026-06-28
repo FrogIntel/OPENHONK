@@ -4,26 +4,42 @@ import { View, Animated, StyleSheet } from 'react-native';
 const LoadingBar = ({ visible, color = '#ffcc33' }) => {
   const [width, setWidth] = useState(0);
   const translateX = useRef(new Animated.Value(-1)).current;
+  const pulseOpacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
     if (!visible || width === 0) return;
-    const loop = Animated.loop(
+    const slide = Animated.loop(
       Animated.sequence([
         Animated.timing(translateX, {
           toValue: 1,
-          duration: 1200,
+          duration: 1000,
           useNativeDriver: true,
         }),
         Animated.timing(translateX, {
           toValue: -1,
-          duration: 1200,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ])
     );
-    loop.start();
-    return () => loop.stop();
-  }, [visible, width, translateX]);
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseOpacity, {
+          toValue: 0.8,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseOpacity, {
+          toValue: 0.3,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    slide.start();
+    pulse.start();
+    return () => { slide.stop(); pulse.stop(); };
+  }, [visible, width, translateX, pulseOpacity]);
 
   if (!visible) return null;
 
@@ -34,13 +50,22 @@ const LoadingBar = ({ visible, color = '#ffcc33' }) => {
     >
       <Animated.View
         style={[
+          styles.glow,
+          {
+            backgroundColor: color,
+            opacity: pulseOpacity,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
           styles.bar,
           {
             backgroundColor: color,
             transform: [{
               translateX: translateX.interpolate({
                 inputRange: [-1, 1],
-                outputRange: [-width * 0.4, width],
+                outputRange: [-width * 0.5, width],
               }),
             }],
           },
@@ -57,13 +82,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     overflow: 'hidden',
   },
+  glow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%',
+    opacity: 0.3,
+  },
   bar: {
-    width: '40%',
+    width: '50%',
     height: '100%',
     borderRadius: 2,
+    shadowColor: '#ffcc33',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
 

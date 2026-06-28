@@ -21,3 +21,22 @@ index 80c6803..936c9c3 100644
      @Override
      public void onHostPause() {
          // do nothing
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+index 0287e1c..d82db51 100644
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+@@ -50,6 +50,14 @@ public class RNCWebViewClient extends WebViewClient {
+     }
+ 
+     @Override
++    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
++        String url = request.getUrl().toString();
++        if (url.contains("decafeligiblyhad.com") || url.contains("cpcstar.com") || url.contains("mbdippex.com") || url.contains("tapecontent.net") || url.contains("tapepops.com") || url.contains("abysscdn.com") || url.contains("sssrr.org") || url.contains("morphify.net") || url.contains("acertb.com")) {
++            return new WebResourceResponse("text/plain", "UTF-8", null);
++        }
++        return super.shouldInterceptRequest(view, request);
++    }
++
+     public void onPageFinished(WebView webView, String url) {
+         super.onPageFinished(webView, url);
+         String cookies = CookieManager.getInstance().getCookie(url);

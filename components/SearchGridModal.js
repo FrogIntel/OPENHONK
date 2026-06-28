@@ -5,7 +5,7 @@ import { searchAllApp } from '../utils/globalSearch';
 
 const tilePadding = 10;
 
-const SearchGridModal = ({ visible, onClose, onOpenUrl, primaryColor = '#ffcc33' }) => {
+const SearchGridModal = ({ visible, onClose, onOpenUrl, primaryColor = '#ffcc33', navigation }) => {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const numColumns = isLandscape ? 3 : 2;
@@ -42,10 +42,14 @@ const SearchGridModal = ({ visible, onClose, onOpenUrl, primaryColor = '#ffcc33'
 
   const handleOpen = (item) => {
     handleClose();
+    if (item.url && item.url.startsWith('openhonk://')) {
+      navigation.navigate('NewContent');
+      return;
+    }
     onOpenUrl(item.url, item.title);
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity
       style={[styles.gridItem, { width: tileWidth, marginLeft: tilePadding }]}
       onPress={() => handleOpen(item)}
@@ -54,6 +58,7 @@ const SearchGridModal = ({ visible, onClose, onOpenUrl, primaryColor = '#ffcc33'
         <ScreenshotImage
           url={item.url}
           style={styles.gridImage}
+          staggerIndex={index}
         />
         <View style={styles.gridOverlay}>
           <Text style={styles.gridTitle} numberOfLines={2}>{item.title}</Text>

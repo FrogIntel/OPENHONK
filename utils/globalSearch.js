@@ -18,6 +18,20 @@ export const searchAllApp = (query) => {
             results.push({ ...item, category: categoryData.title });
           }
         });
+      } else if (categoryData && !categoryData.urls) {
+        // Nested subcategories (e.g. restructured qAnon, tacoToppings, news)
+        Object.keys(categoryData).forEach(subKey => {
+          const subData = categoryData[subKey];
+          if (subData && subData.urls) {
+            getFilteredUrls(subData.urls).forEach(item => {
+              if (item && item.title && item.url &&
+                  (item.title.toLowerCase().includes(q) ||
+                   item.url.toLowerCase().includes(q))) {
+                results.push({ ...item, category: subData.title });
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -62,6 +76,31 @@ export const searchAllApp = (query) => {
           }
         });
       }
+    });
+  }
+
+  // Search notifications (including cleared ones)
+  if (appData.notifications && appData.notifications.urls) {
+    appData.notifications.urls.forEach(item => {
+      if (item && item.title &&
+          (item.title.toLowerCase().includes(q) ||
+           (item.message && item.message.toLowerCase().includes(q)))) {
+        results.push({
+          title: item.title,
+          url: item.url || 'file:///android_asset/openhonk_home/changelog.html',
+          category: 'NOTIFICATIONS',
+        });
+      }
+    });
+  }
+
+  // Search changelog
+  const changelogTerms = ['changelog', 'update', 'whats new', "what's new", 'version', 'changes'];
+  if (changelogTerms.some(term => term.includes(q) || q.includes(term))) {
+    results.push({
+      title: 'Changelog & Updates',
+      url: 'file:///android_asset/openhonk_home/changelog.html',
+      category: 'UPDATES',
     });
   }
 

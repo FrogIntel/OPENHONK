@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { prefetchUrl, initStoreScreenshots, clearFailedCache, backgroundPrefetchAll, getCacheStats, getUncachedUrls, startRetryTimer } from './components/screenshotCache';
+import { prefetchUrl, initStoreScreenshots, clearFailedCache, backgroundPrefetchAll, getCacheStats, getUncachedUrls, startRetryTimer, preloadAllCachedScreenshots, getFailedUrls } from './components/screenshotCache';
 import { fetchAdBlockList, checkAndScheduleAdBlockUpdate } from './components/adBlockList';
 import { appData } from './data/urls';
 import ThemedBackground from './components/ThemedBackground';
@@ -48,6 +48,15 @@ const getAllWebsites = () => {
           category.urls.forEach(item => {
             if (item.url) allUrls.push(item);
           });
+        } else if (category && !category.urls) {
+          // Nested subcategories (e.g. restructured qAnon, tacoToppings, news)
+          Object.entries(category).forEach(([subKey, subData]) => {
+            if (subData && subData.urls) {
+              subData.urls.forEach(item => {
+                if (item.url) allUrls.push(item);
+              });
+            }
+          });
         }
       });
     }
@@ -59,6 +68,9 @@ const prefetchAllTiles = async () => {
   // Wait for cached screenshots to load from AsyncStorage
   await initStoreScreenshots();
   clearFailedCache();
+
+  // Preload all cached screenshots into RN Image cache so they render instantly on navigation
+  await preloadAllCachedScreenshots();
 
   const stats = getCacheStats();
   const allItems = getAllWebsites();

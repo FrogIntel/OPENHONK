@@ -170,7 +170,6 @@ function GalleryScreen({ navigation }) {
 
     // Priority 1: Home screen visible tiles only
     prefetchUrl(appData.homepage, true);
-    prefetchUrl('https://anitabuidpe.lastapp.dev/', true);
     prefetchItems(brebData.slice(0, 3), 3, true);
     prefetchItems(sauceData.slice(0, 3), 3, true);
     if (appData.frens?.urls) prefetchItems(getFilteredUrls(appData.frens.urls).slice(0, 3), 3, true);
@@ -513,6 +512,22 @@ Download Now:
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* Pepecoin Miner Game Tile */}
+        <TouchableOpacity
+          style={styles.spotlightTile}
+          onPress={() => openUrl('https://eilfelsnow.itch.io/pepecoin-miner', 'PEPECOIN MINER')}
+        >
+          <Image
+            source={require('../assets/5IYSHb.png')}
+            style={styles.spotlightImage}
+            resizeMode="cover"
+          />
+          <View style={styles.tileOverlay}>
+            <Text style={styles.tileLabel}>PEPECOIN MINER</Text>
+            <Text style={styles.tileSubtitle}>Tap to play 🐸</Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
       </View>
 
@@ -541,6 +556,7 @@ Download Now:
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
         onOpenUrl={openUrl}
+        navigation={navigation}
         primaryColor={theme.primaryColor}
       />
     </>
