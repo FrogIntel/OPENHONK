@@ -5,14 +5,20 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -71,6 +77,72 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
     @ReactMethod
     fun keepWebViewAliveInBackground(enabled: Boolean) {
         keepWebViewAlive = enabled
+    }
+
+    @ReactMethod
+    fun requestUnrestrictedBattery() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val context = reactApplicationContext
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                if (!pm.isIgnoringBatteryOptimizations(context.packageName)) {
+                    val activity = getCurrentActivity()
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    if (activity != null) {
+                        activity.startActivity(intent)
+                    } else {
+                        context.startActivity(intent)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to request battery optimization exemption", e)
+        }
+    }
+
+    @ReactMethod
+    fun isBatteryUnrestricted(callback: Callback) {
+        try {
+            val context = reactApplicationContext
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val isUnrestricted = pm.isIgnoringBatteryOptimizations(context.packageName)
+            callback.invoke(isUnrestricted)
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to check battery optimization", e)
+            callback.invoke(false)
+        }
+    }
+
+    @ReactMethod
+    fun requestNotificationPermission() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val activity = getCurrentActivity() ?: return
+                if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    activity.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to request notification permission", e)
+        }
+    }
+
+    @ReactMethod
+    fun isNotificationPermissionGranted(callback: Callback) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val context = reactApplicationContext
+                val granted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                callback.invoke(granted)
+            } else {
+                callback.invoke(true)
+            }
+        } catch (e: Exception) {
+            callback.invoke(true)
+        }
     }
 
     @ReactMethod
