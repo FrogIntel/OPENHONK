@@ -295,12 +295,9 @@ const WebViewScreen = ({ route, navigation }) => {
           setCanGoBack(navState.canGoBack);
           if (navState.url) {
             trackCookieDomain(navState.url);
-            // Save cookies when leaving a rumble page, restore when entering one
+            // Save cookies when leaving a rumble page
             if (currentUrl && currentUrl.includes('rumble.com') && !navState.url.includes('rumble.com')) {
               saveRumbleCookies(currentUrl);
-            }
-            if (navState.url.includes('rumble.com') && (!currentUrl || !currentUrl.includes('rumble.com'))) {
-              restoreRumbleCookies(navState.url);
             }
             setCurrentUrl(navState.url);
             setIsInsecure(navState.url.startsWith('http://'));
