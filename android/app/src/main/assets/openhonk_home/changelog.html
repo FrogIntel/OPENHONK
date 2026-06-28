@@ -46,7 +46,19 @@
     <div class="container">
       <div class="header">
         <h1>OPENHONK</h1>
-        <div class="version">Version 1.0.11 Changelog</div>
+        <div class="version">Version 1.0.12 Changelog</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">v1.0.12 — Faster Screenshot Loading & Background Playback Fix</div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed background audio playback</strong> — applied WebView visibility patch that prevents Android from pausing media when the app goes to background; Rumble and other sites now keep playing audio when you switch apps or lock the screen</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Instant tile placeholders</strong> — tiles now show the OpenHonk icon on a yellow background immediately while screenshots or favicons load, instead of showing black tiles</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Faster screenshot cache loading</strong> — cache now loads at app startup before any screen renders, so cached screenshots appear instantly on navigation instead of waiting for AsyncStorage</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Parallel image preloading</strong> — all cached screenshots are now prefetched simultaneously instead of in sequential batches, dramatically reducing time to first painted tile</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed thum.io screenshot fetching</strong> — removed URL encoding that caused 400 errors for sites with trailing slashes like expose-news.com</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Reduced retry delays</strong> — failed screenshot retries now happen at 1.5s and 3s instead of 3s, 6s, and 10s, so tiles resolve to favicons faster</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Permissions buttons fixed</strong> — Enable Notifications and Grant Unrestricted Battery buttons in the tutorial now correctly open the system dialogs and show green when granted</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed carousel flash</strong> — home screen carousels no longer flash the fallback icon between slides during crossfade transitions</span></div>
       </div>
 
       <div class="section">

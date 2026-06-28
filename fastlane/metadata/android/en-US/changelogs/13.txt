@@ -1,0 +1,8 @@
+Fixed background audio playback: Rumble and other sites now keep playing when you switch apps or lock the screen
+Instant tile placeholders: yellow OpenHonk icon shown immediately while screenshots load instead of black tiles
+Faster screenshot cache: cache loads at app startup before any screen renders for instant navigation
+Parallel image preloading: all cached screenshots prefetched simultaneously instead of sequential batches
+Fixed thum.io screenshot fetching for sites with trailing slashes like expose-news.com
+Reduced retry delays: failed screenshots resolve to favicons in 4.5s instead of 19s
+Fixed permissions buttons: Enable Notifications and Grant Battery now open system dialogs correctly
+Fixed carousel flash: home screen carousels no longer flash fallback icon between slides during crossfade

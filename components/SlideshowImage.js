@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
-import { getCachedSource, markScreenshotFailed, markFaviconFailed, markScreenshotSuccess, prefetchUrl, removeCachedScreenshot } from './screenshotCache';
+import { View, Animated, StyleSheet, Image } from 'react-native';
+import { getCachedSource, markScreenshotFailed, markFaviconFailed, markScreenshotSuccess, prefetchUrl, removeCachedScreenshot, onCacheReady } from './screenshotCache';
 import LoadingBar from './LoadingBar';
 
 const FALLBACK_IMAGE = require('../assets/fallback_icon.png');
 
-const RETRY_DELAYS = [3000, 6000, 10000];
+const RETRY_DELAYS = [1500, 3000];
 
 const ImageLayer = ({ url, opacity, style, resizeMode, onLoaded }) => {
   const [tick, setTick] = useState(0);
@@ -21,6 +21,11 @@ const ImageLayer = ({ url, opacity, style, resizeMode, onLoaded }) => {
     setTick(t => t + 1);
     return () => { if (retryTimer.current) clearTimeout(retryTimer.current); };
   }, [url]);
+
+  // Re-render when cache becomes ready so we pick up cached screenshots
+  useEffect(() => {
+    return onCacheReady(() => setTick(t => t + 1));
+  }, []);
 
   const cached = url ? getCachedSource(url) : null;
   const source = cached ? cached.source : null;
@@ -68,7 +73,7 @@ const ImageLayer = ({ url, opacity, style, resizeMode, onLoaded }) => {
   const isFallback = cached?.type === 'fallback';
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity, overflow: 'hidden', backgroundColor: isFallback ? '#f7bf1e' : '#0d0d0d' }]}>
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity, overflow: 'hidden', backgroundColor: '#0d0d0d' }]}>
       {url && source && (
         <Animated.View style={[styles.imageWrapper, isFallback && styles.centeredImage]}>
           <Animated.Image

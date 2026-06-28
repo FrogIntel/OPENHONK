@@ -8,7 +8,7 @@ const MIN_SCREENSHOT_WIDTH = 200;
 const MIN_SCREENSHOT_HEIGHT = 150;
 
 const SCREENSHOT_SERVICES = [
-  (url) => `https://image.thum.io/get/width/320/crop/600/viewport/800/${encodeURIComponent(url)}`,
+  (url) => `https://image.thum.io/get/width/320/crop/600/viewport/800/${url}`,
   (url) => `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`,
 ];
 
@@ -59,6 +59,74 @@ const queuedUrls = new Set();
 let storeScreenshotsEnabled = false;
 const RETRY_INTERVAL_MS = 5 * 60 * 1000;
 
+// Cache readiness state + listeners for instant re-render when cache loads
+let cacheReady = false;
+const cacheReadyListeners = new Set();
+
+export const isCacheReady = () => cacheReady;
+
+export const onCacheReady = (cb) => {
+  if (cacheReady) { cb(); return () => {}; }
+  cacheReadyListeners.add(cb);
+  return () => cacheReadyListeners.delete(cb);
+};
+
+const notifyCacheReady = () => {
+  cacheReady = true;
+  cacheReadyListeners.forEach(cb => cb());
+  cacheReadyListeners.clear();
+};
+
+// Start loading cache immediately at module import time (before any component renders)
+let initPromise = null;
+const ensureInit = () => {
+  if (!initPromise) initPromise = doInit();
+  return initPromise;
+};
+
+const doInit = async () => {
+  try {
+    const [storeVal, raw] = await Promise.all([
+      AsyncStorage.getItem(STORE_SCREENSHOTS_KEY),
+      AsyncStorage.getItem(SCREENSHOT_CACHE_KEY),
+    ]);
+    storeScreenshotsEnabled = storeVal === 'true';
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(entry => {
+          let url, serviceIndex = 0, screenshotUrl;
+          if (typeof entry === 'string') {
+            url = entry;
+            screenshotUrl = getScreenshotUrl(url, 0);
+          } else if (Array.isArray(entry)) {
+            url = entry[0];
+            const data = entry[1];
+            if (typeof data === 'object' && data !== null) {
+              serviceIndex = data.serviceIndex ?? 0;
+              screenshotUrl = data.screenshotUrl || getScreenshotUrl(url, serviceIndex);
+            } else {
+              serviceIndex = data ?? 0;
+              screenshotUrl = getScreenshotUrl(url, serviceIndex);
+            }
+          } else if (typeof entry === 'object' && entry !== null) {
+            url = entry.url;
+            serviceIndex = entry.serviceIndex ?? 0;
+            screenshotUrl = entry.screenshotUrl || getScreenshotUrl(url, serviceIndex);
+          }
+          if (url && screenshotUrl && isKnownServiceUrl(screenshotUrl) && !shouldUseFaviconOnly(url)) {
+            cachedScreenshots.set(url, { serviceIndex, screenshotUrl });
+          }
+        });
+      }
+    }
+  } catch (e) {}
+  notifyCacheReady();
+};
+
+// Kick off init immediately
+ensureInit();
+
 export const isStoreScreenshotsEnabled = () => storeScreenshotsEnabled;
 
 export const setStoreScreenshots = (enabled) => {
@@ -98,47 +166,7 @@ const getAllValidUrls = () => {
 };
 
 export const initStoreScreenshots = async () => {
-  try {
-    const val = await AsyncStorage.getItem(STORE_SCREENSHOTS_KEY);
-    storeScreenshotsEnabled = val === 'true';
-    // Always load cached screenshot URLs (for prefetch skipping), regardless of setting
-    const raw = await AsyncStorage.getItem(SCREENSHOT_CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const validUrls = getAllValidUrls();
-        let pruned = 0;
-        parsed.forEach(entry => {
-          let url, serviceIndex = 0, screenshotUrl;
-          if (typeof entry === 'string') {
-            url = entry;
-            screenshotUrl = getScreenshotUrl(url, 0);
-          } else if (Array.isArray(entry)) {
-            [url, data] = entry;
-            if (typeof data === 'object' && data !== null) {
-              serviceIndex = data.serviceIndex ?? 0;
-              screenshotUrl = data.screenshotUrl || getScreenshotUrl(url, serviceIndex);
-            } else {
-              serviceIndex = data ?? 0;
-              screenshotUrl = getScreenshotUrl(url, serviceIndex);
-            }
-          } else if (typeof entry === 'object' && entry !== null) {
-            url = entry.url;
-            serviceIndex = entry.serviceIndex ?? 0;
-            screenshotUrl = entry.screenshotUrl || getScreenshotUrl(url, serviceIndex);
-          }
-          if (url && validUrls.has(url) && screenshotUrl && isKnownServiceUrl(screenshotUrl) && !shouldUseFaviconOnly(url)) {
-            cachedScreenshots.set(url, { serviceIndex, screenshotUrl });
-          } else {
-            pruned++;
-          }
-        });
-        if (pruned > 0) {
-          saveCachedScreenshots();
-        }
-      }
-    }
-  } catch (e) {}
+  await ensureInit();
 };
 
 export const getCacheStats = () => {
@@ -439,11 +467,8 @@ export const preloadAllCachedScreenshots = async () => {
       urls.push(faviconUrl);
     }
   }
-  const CONCURRENT = 12;
-  for (let i = 0; i < urls.length; i += CONCURRENT) {
-    const batch = urls.slice(i, i + CONCURRENT);
-    await Promise.all(batch.map(u => Image.prefetch(u).catch(() => {})));
-  }
+  // Prefetch all at once — RN Image.prefetch handles internal concurrency
+  await Promise.all(urls.map(u => Image.prefetch(u).catch(() => {})));
 };
 
 export const preloadCachedForUrls = (urlList) => {
