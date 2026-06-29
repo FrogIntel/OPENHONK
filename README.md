@@ -21,7 +21,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <div align="center">
 
-<img src="assets/screenshots/Screenshot_20260624-000842.png" width="270" alt="OPENHONK Home Screen" />
+<img src="assets/screenshots/home screen.png" width="270" alt="OPENHONK Home Screen" />
 
 </div>
 
@@ -62,22 +62,33 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 <table>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000850.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000855.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000859.png" width="200" /></td>
+<td><img src="assets/screenshots/intro screen.png" width="200" alt="Intro Screen" /></td>
+<td><img src="assets/screenshots/intro welcome setup.png" width="200" alt="Welcome Setup" /></td>
+<td><img src="assets/screenshots/home screen.png" width="200" alt="Home Screen" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000905.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000915.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000927.png" width="200" /></td>
+<td><img src="assets/screenshots/home screen side menu.png" width="200" alt="Side Menu" /></td>
+<td><img src="assets/screenshots/openhonk html screen.png" width="200" alt="OPENHONK HTML" /></td>
+<td><img src="assets/screenshots/breb.png" width="200" alt="Breb" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-000942.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-000958.png" width="200" /></td>
-<td><img src="assets/screenshots/Screenshot_20260624-001030.png" width="200" /></td>
+<td><img src="assets/screenshots/sauce.png" width="200" alt="Sauce" /></td>
+<td><img src="assets/screenshots/US news.png" width="200" alt="US News" /></td>
+<td><img src="assets/screenshots/q + anon.png" width="200" alt="Q+Anon" /></td>
 </tr>
 <tr>
-<td><img src="assets/screenshots/Screenshot_20260624-001039.png" width="200" /></td>
+<td><img src="assets/screenshots/showtime.png" width="200" alt="Showtime" /></td>
+<td><img src="assets/screenshots/notifications.png" width="200" alt="Notifications" /></td>
+<td><img src="assets/screenshots/changelog.png" width="200" alt="Changelog" /></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/settings.png" width="200" alt="Settings" /></td>
+<td><img src="assets/screenshots/theme settings.png" width="200" alt="Theme Settings" /></td>
+<td><img src="assets/screenshots/news.png" width="200" alt="News" /></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/news search.png" width="200" alt="News Search" /></td>
+<td><img src="assets/screenshots/update search.png" width="200" alt="Update Search" /></td>
 </tr>
 </table>
 
@@ -151,7 +162,6 @@ The signed APK will be generated in the build output directory.
 - ✅ Background audio/video playback
 - ✅ Multi-step intro walkthrough
 - ✅ Browser bookmark extension
-- ⬜ Port to iOS
 - TBC — see Telegram channel for more
 
 ---
