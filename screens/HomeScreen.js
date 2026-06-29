@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, SafeAreaView, Text, Platform, StatusBar, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, SafeAreaView, Text, Platform, StatusBar, Image, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Share from 'react-native-share';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -83,7 +83,14 @@ Download Now:
     setSearchResults(searchAllApp(query));
   };
 
+  const lastNavUrl = useRef('');
+  const lastNavTime = useRef(0);
   const openUrl = (url) => {
+    if (!url) return;
+    const now = Date.now();
+    if (url === lastNavUrl.current && (now - lastNavTime.current) < 3000) return;
+    lastNavUrl.current = url;
+    lastNavTime.current = now;
     navigation.navigate('WebView', { url, title: 'External Link' });
   };
 
@@ -128,6 +135,45 @@ Download Now:
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
           allowsBackForwardNavigationGestures={true}
+          originWhitelist={['*']}
+          allowsFileAccess={true}
+          allowsFileAccessFromFileURLs={true}
+          allowsUniversalAccessFromFileURLs={true}
+          setSupportMultipleWindows={true}
+          javaScriptCanOpenWindowsAutomatically={true}
+          onMessage={(event) => {
+            try {
+              var msg = JSON.parse(event.nativeEvent.data);
+              if (msg.type === 'open_url' && msg.url) {
+                openUrl(msg.url);
+              }
+            } catch(e) {}
+          }}
+          onShouldStartLoadWithRequest={(request) => {
+            const url = request.url;
+            if (url.startsWith('file://') || url.startsWith('about:blank') || url.startsWith('blob:') || url.startsWith('data:')) {
+              return true;
+            }
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+              if (url !== appData.homepage) {
+                openUrl(url);
+                return false;
+              }
+              return true;
+            }
+            if (url.startsWith('tel:') || url.startsWith('mailto:') || url.startsWith('sms:') || url.startsWith('intent:') || url.startsWith('whatsapp:') || url.startsWith('tg:') || url.startsWith('telegram:')) {
+              Linking.openURL(url).catch(() => {});
+              return false;
+            }
+            return false;
+          }}
+          onOpenWindow={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            const targetUrl = nativeEvent.targetUrl;
+            if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
+              openUrl(targetUrl);
+            }
+          }}
           onLoadStart={() => setWebViewLoading(true)}
           onLoadEnd={() => setWebViewLoading(false)}
           onError={() => setWebViewLoading(false)}

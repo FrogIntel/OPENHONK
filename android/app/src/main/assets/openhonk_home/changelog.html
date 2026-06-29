@@ -46,7 +46,21 @@
     <div class="container">
       <div class="header">
         <h1>OPENHONK</h1>
-        <div class="version">Version 1.0.12 Changelog</div>
+        <div class="version">Version 1.0.13 Changelog</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">v1.0.13 — Disclaimer, Footer, Navigation & Notification Fix</div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Added epilepsy warning to all HTML pages</strong> — the Welcome and Extra pages now include the same epilepsy caution line as the main home page: "Caution: Some Content May Trigger Epilepsy — Viewer Discretion Advised"</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Unified footer version across all HTML pages</strong> — Welcome and Extra pages now show v1.0.13 in the footer instead of the old Last Updated date</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Modal popup shows only once</strong> — the welcome modal on the OPENHONK home page now appears only on first visit and won't reappear on subsequent loads</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed HTML page link navigation</strong> — clicking links from the OPENHONK home page (GitHub, Telegram, contact form, etc.) now opens them properly in the in-app browser instead of getting stuck loading. Links are now patched directly in the HTML to intercept Nicepage JS navigation</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed AdBlock in-app notification</strong> — AdBlock update notifications now appear correctly inside the app notifications list, not just in Android system notifications</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Unified carousel text across all HTML pages</strong> — all three HTML pages (Home, Welcome, Extra) now consistently show READY... RESEARCH.. REACH.. REACT FREN.. OPENHONK in the animated carousel</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>DON'T PANIC sign is now tappable on all pages</strong> — tapping the DON'T PANIC sign on the Home, Welcome, and Extra pages opens the welcome modal popup manually</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Changelog added to side menu</strong> — a CHANGELOG entry has been added to the side navigation menu under Telegram and before Settings for quick access</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Seamless XMB wave themes</strong> — the XMB wave and XMB wave 3 background themes (Crimson Tide, Blood Red, Sunset, etc.) now flow continuously without any visible restart or glitch. Wave lines translate by exactly one sine period for mathematically perfect looping. Reduced View count for better performance</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed cookie clearing on restart</strong> — cookies are now properly cleared on app restart when the Keep Cookies setting is off. Previously cookies persisted because the cleanup only ran on unmount, which doesn't execute when the app process is killed</span></div>
       </div>
 
       <div class="section">

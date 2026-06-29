@@ -303,6 +303,11 @@ const SideMenu = ({ visible, onClose, navigation }) => {
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>TELEGRAM</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
+            <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('WebView', { url: 'file:///android_asset/openhonk_home/changelog.html', title: 'CHANGELOG' }); }}>
+              <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
+              <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>CHANGELOG</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); navigation.navigate('Settings'); }}>
               <Image source={require('../assets/app3679992_mb_homeit1292283.png')} style={{ width: 24, height: 24 }} />
               <Text style={[styles.menuItemText, { color: theme.primaryColor }]}>SETTINGS</Text>

@@ -1,0 +1,10 @@
+Added epilepsy warning to the Welcome and Extra HTML pages to match the main home page disclaimer
+Unified footer version across all HTML pages  all now show v1.0.13
+Modal popup on OPENHONK home page now shows only once instead of every time
+Fixed link navigation from OPENHONK HTML pages  all external links now patched directly in HTML to intercept Nicepage JS and open properly in the in-app browser
+Fixed AdBlock update notifications not appearing inside the app notifications list
+Unified carousel text across all HTML pages  all now show READY... RESEARCH.. REACH.. REACT FREN.. OPENHONK
+DON'T PANIC sign on all HTML pages (Home, Welcome, Extra) is now tappable to open the welcome modal popup manually
+Changelog entry added to side menu under Telegram and before Settings for quick access
+Seamless XMB wave themes  wave backgrounds now flow continuously without visible restart or glitch, with reduced View count for better performance
+Fixed cookie clearing on app restart when Keep Cookies setting is off

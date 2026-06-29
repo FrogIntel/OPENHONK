@@ -62,7 +62,19 @@ export const clearAllCookies = async () => {
     if (Platform.OS === 'android') {
       const { CookieManager } = NativeModules;
       if (CookieManager) {
-        CookieManager.removeAllCookies?.();
+        try {
+          await CookieManager.removeAllCookies?.();
+        } catch (e2) {
+          // ignore
+        }
+      }
+      const { CookiePersistModule } = NativeModules;
+      if (CookiePersistModule) {
+        try {
+          await CookiePersistModule.clearAll();
+        } catch (e3) {
+          // ignore
+        }
       }
     }
   } catch (e) {

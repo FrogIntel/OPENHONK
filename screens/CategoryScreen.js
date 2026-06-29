@@ -213,7 +213,7 @@ const CategoryScreen = ({ route, navigation }) => {
             const info = JSON.parse(stored);
             const isSuccess = info.status !== 'failed';
             adblockEntry = {
-              id: 'adblock',
+              id: info.id || 'adblock',
               title: isSuccess ? 'AdBlock Updated' : 'AdBlock Update Failed',
               url: 'https://easylist.to/easylist/easylist.txt',
               message: isSuccess ? `${info.domains} domains loaded from EasyList` : `Update failed: ${info.error || 'Network error'}. Using cached list.`,
@@ -222,7 +222,7 @@ const CategoryScreen = ({ route, navigation }) => {
           } catch (e) {}
         } else {
           adblockEntry = {
-            id: 'adblock',
+            id: 'adblock_pending',
             title: 'AdBlock Pending',
             url: 'https://easylist.to/easylist/easylist.txt',
             message: 'AdBlock list will update on first browser open',

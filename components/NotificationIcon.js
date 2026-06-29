@@ -29,8 +29,11 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
         if (stored && !dismissed.includes('adblock')) {
           try {
             const info = JSON.parse(stored);
-            if (!viewed.adblock || new Date(viewed.adblock) < new Date(info.date)) {
-              count++;
+            const notifId = info.id || 'adblock';
+            if (!dismissed.includes(notifId)) {
+              if (!viewed[notifId] || new Date(viewed[notifId]) < new Date(info.date)) {
+                count++;
+              }
             }
           } catch (e) {
             count++;

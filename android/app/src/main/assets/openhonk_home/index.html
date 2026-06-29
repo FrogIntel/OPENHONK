@@ -68,6 +68,7 @@
           </div>
           <div class="u-carousel-item u-container-style u-slide">
             <div class="u-container-layout u-valign-middle-lg u-valign-middle-md u-valign-middle-sm u-valign-middle-xl u-container-layout-5">
+              <h1 class="u-align-center u-text u-text-default u-text-palette-3-base u-text-6" data-animation-out="0">OPENHONK</h1>
             </div>
           </div>
         </div>
@@ -156,7 +157,7 @@
     <section class="u-black u-clearfix u-section-4" id="carousel_97af">
       <div class="u-black u-container-style u-expanded-width u-group u-group-1">
         <div class="u-container-layout u-container-layout-1">
-          <img class="u-image u-image-default u-image-1" src="images/image_2024-02-18_104714269.png" alt="" data-image-width="942" data-image-height="965">
+          <img class="u-image u-image-default u-image-1" src="images/image_2024-02-18_104714269.png" alt="DON'T PANIC" data-image-width="942" data-image-height="965" style="cursor:pointer" onclick="var m=document.getElementById('sec-1538');if(m){m.style.display='flex';m.style.opacity='1';m.style.pointerEvents='auto';m.classList.add('u-dialog-open');var c=m.querySelector('.u-dialog-close-button');if(c){c.onclick=function(){m.style.display='none';m.classList.remove('u-dialog-open');};}}">
         </div>
       </div>
       <div class="data-layout-selected u-clearfix u-gutter-56 u-layout-wrap u-layout-wrap-1">
@@ -271,7 +272,7 @@
           </details>
         </div>
         <p class="u-small-text u-text u-text-palette-3-base u-text-variant u-text-1"><span style="text-decoration: underline !important;"><b>O P E N H O N K</b></span>
-          <br><span style="text-decoration: underline !important;">v1.0.12</span>
+          <br><span style="text-decoration: underline !important;">v1.0.13</span>
           <br>
           <br>App works best using a zero log VPN with DNS blocking.<br>
           <br>Created by a small group of Anons and Admins inside the truther community. Maintained by Anodev.<span style="font-weight: 700;"><span style="font-weight: 400;"></span></span>
@@ -419,4 +420,28 @@
     margin-top: 17px;
   }
 }</style>
+<script>
+(function() {
+  var modal = document.getElementById('sec-1538');
+  if (modal) {
+    if (localStorage.getItem('openhonk_modal_shown') === '1') {
+      modal.removeAttribute('data-dialog-show-on');
+      modal.removeAttribute('data-dialog-show-interval');
+    } else {
+      var observer = new MutationObserver(function() {
+        if (modal.style.display !== 'none' && modal.classList.contains('u-dialog-open')) {
+          localStorage.setItem('openhonk_modal_shown', '1');
+        }
+      });
+      observer.observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
+      var closeBtn = modal.querySelector('.u-dialog-close-button');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          localStorage.setItem('openhonk_modal_shown', '1');
+        });
+      }
+    }
+  }
+})();
+</script>
 </body></html>

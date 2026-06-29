@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, Platform, StatusBar, ScrollView, Image } from 'react-native';
+import { Text, View, Platform, StatusBar, ScrollView, Image, NativeModules } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -8,6 +8,8 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { prefetchUrl, initStoreScreenshots, clearFailedCache, backgroundPrefetchAll, getCacheStats, getUncachedUrls, startRetryTimer, preloadAllCachedScreenshots, getFailedUrls } from './components/screenshotCache';
 import { fetchAdBlockList, checkAndScheduleAdBlockUpdate } from './components/adBlockList';
 import { appData } from './data/urls';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearAllCookies } from './components/cookieManager';
 import ThemedBackground from './components/ThemedBackground';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -109,6 +111,18 @@ const prefetchAllTiles = async () => {
 prefetchAllTiles();
 checkAndScheduleAdBlockUpdate();
 startRetryTimer();
+
+// Clear cookies on app startup when keep_cookies is OFF
+(async () => {
+  try {
+    const val = await AsyncStorage.getItem('@keep_cookies');
+    if (val !== 'true') {
+      await clearAllCookies();
+    }
+  } catch (e) {
+    // ignore
+  }
+})();
 
 const Icon = ({ name, size, color }) => {
   const iconMap = {

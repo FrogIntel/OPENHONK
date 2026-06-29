@@ -909,55 +909,55 @@ const RadarBackground = ({ theme, style }) => {
   );
 };
 
-// ========== XMB WAVE (PlayStation style - highly detailed) ==========
+// ========== XMB WAVE (PlayStation style - seamless flowing) ==========
 const XMBWaveBackground = ({ theme, style }) => {
-  const waveAnim = useRef(new Animated.Value(0)).current;
-  const particleAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const flowAnims = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  const flowDurations = [9000, 13000, 17000, 21000];
 
   useEffect(() => {
+    // Glow + vertical bob: seamless 0→1→0
     Animated.loop(
-      Animated.timing(waveAnim, {
-        toValue: 1,
-        duration: 10000,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-      }),
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
     ).start();
 
-    Animated.loop(
-      Animated.timing(particleAnim, {
-        toValue: 1,
-        duration: 15000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-
-    Animated.loop(
-      Animated.timing(glowAnim, {
-        toValue: 1,
-        duration: 6000,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, [waveAnim, particleAnim, glowAnim]);
+    // Each wave flows horizontally by exactly its period for seamless wrap
+    flowAnims.forEach((anim, i) => {
+      Animated.loop(
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: flowDurations[i],
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ).start();
+    });
+  }, [glowAnim, flowAnims]);
 
   const waves = useMemo(() => {
     const arr = [];
-    const numWaves = 5;
+    const numWaves = 4;
     for (let i = 0; i < numWaves; i++) {
       const depth = i / numWaves;
+      const frequency = 0.008 + i * 0.003;
+      const period = (2 * Math.PI) / frequency;
       arr.push({
         key: i,
-        amplitude: 25 + Math.random() * 70,
-        frequency: 0.006 + Math.random() * 0.008,
-        phase: Math.random() * Math.PI * 2,
-        phase2: Math.random() * Math.PI * 2,
-        yOffset: 0.1 + depth * 0.8,
-        opacity: 0.08 + depth * 0.3,
-        strokeWidth: 0.5 + (1 - depth) * 1.5,
+        amplitude: 30 + depth * 50,
+        frequency,
+        period,
+        phase: i * 1.3,
+        yOffset: 0.15 + depth * 0.7,
+        opacity: 0.1 + depth * 0.25,
         parallax: 0.3 + depth * 0.7,
       });
     }
@@ -966,26 +966,25 @@ const XMBWaveBackground = ({ theme, style }) => {
 
   const particles = useMemo(() => {
     const arr = [];
-    const numParticles = 20;
+    const numParticles = 10;
     for (let i = 0; i < numParticles; i++) {
       arr.push({
         key: i,
         startX: Math.random() * SCREEN_WIDTH,
-        y: Math.random() * SCREEN_HEIGHT,
-        size: 0.5 + Math.random() * 3.5,
-        speed: 0.2 + Math.random() * 0.8,
-        waveIdx: Math.floor(Math.random() * 5),
-        opacity: 0.2 + Math.random() * 0.6,
-        glow: false,
+        size: 1 + Math.random() * 3,
+        speed: 0.3 + Math.random() * 0.5,
+        waveIdx: Math.floor(Math.random() * 4),
+        opacity: 0.3 + Math.random() * 0.5,
       });
     }
     return arr;
   }, []);
 
-  const STEP = 10;
+  const STEP = 14;
+  const PARTICLE_TRAVEL = SCREEN_WIDTH + 40;
 
   return (
-    <View style={[styles.absolute, { backgroundColor: theme.backgroundColor }, style]}>
+    <View style={[styles.absolute, { backgroundColor: theme.backgroundColor, overflow: 'hidden' }, style]}>
       <LinearGradient
         colors={theme.gradientColors}
         locations={theme.gradientLocations}
@@ -1000,7 +999,7 @@ const XMBWaveBackground = ({ theme, style }) => {
           {
             opacity: glowAnim.interpolate({
               inputRange: [0, 0.5, 1],
-              outputRange: [0.04, 0.1, 0.04],
+              outputRange: [0.03, 0.08, 0.03],
             }),
           },
         ]}
@@ -1018,53 +1017,67 @@ const XMBWaveBackground = ({ theme, style }) => {
           }}
         />
       </Animated.View>
-      {/* Wave layers */}
+      {/* Wave layers - each flows horizontally by exactly one period (seamless) */}
       {waves.map(wave => (
         <Animated.View
           key={wave.key}
           style={[
             styles.absolute,
             {
-              opacity: waveAnim.interpolate({
+              opacity: glowAnim.interpolate({
                 inputRange: [0, 0.5, 1],
                 outputRange: [wave.opacity * 0.5, wave.opacity, wave.opacity * 0.5],
               }),
               transform: [
                 {
-                  translateY: waveAnim.interpolate({
+                  translateY: glowAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [-15 * wave.parallax, 15 * wave.parallax],
+                    outputRange: [-10 * wave.parallax, 10 * wave.parallax],
                   }),
                 },
               ],
             },
           ]}
         >
-          {Array.from({ length: Math.ceil(SCREEN_WIDTH / STEP) + 8 }, (_, x) => {
-            const px = x * STEP;
-            const py = SCREEN_HEIGHT * wave.yOffset
-              + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude
-              + Math.sin(px * wave.frequency * 2.3 + wave.phase2) * (wave.amplitude * 0.35)
-              + Math.sin(px * wave.frequency * 0.5 + wave.phase * 0.7) * (wave.amplitude * 0.2);
-            return (
-              <View
-                key={x}
-                style={{
-                  position: 'absolute',
-                  left: px,
-                  top: py,
-                  width: STEP,
-                  height: STEP,
-                  borderRadius: STEP / 2,
-                  backgroundColor: theme.primaryColor,
-                  opacity: 0.5 + wave.parallax * 0.3,
-                }}
-              />
-            );
-          })}
+          <Animated.View
+            style={[
+              styles.absolute,
+              {
+                transform: [
+                  {
+                    translateX: flowAnims[wave.key].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -wave.period],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {Array.from({ length: Math.ceil((wave.period + SCREEN_WIDTH) / STEP) + 2 }, (_, x) => {
+              const px = x * STEP;
+              const py = SCREEN_HEIGHT * wave.yOffset
+                + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude;
+              return (
+                <View
+                  key={x}
+                  style={{
+                    position: 'absolute',
+                    left: px,
+                    top: py,
+                    width: STEP * 0.5,
+                    height: STEP * 0.5,
+                    borderRadius: STEP * 0.25,
+                    backgroundColor: theme.primaryColor,
+                    opacity: 0.5 + wave.parallax * 0.3,
+                  }}
+                />
+              );
+            })}
+          </Animated.View>
         </Animated.View>
       ))}
-      {/* Flowing particles along waves */}
+      {/* Flowing particles with edge fading for seamless wrap */}
       {particles.map(p => {
         const wave = waves[p.waveIdx];
         return (
@@ -1074,22 +1087,27 @@ const XMBWaveBackground = ({ theme, style }) => {
               position: 'absolute',
               left: 0,
               top: 0,
-              opacity: p.opacity,
+              opacity: flowAnims[0].interpolate({
+                inputRange: [0, 0.08, 0.88, 1],
+                outputRange: [0, p.opacity, p.opacity, 0],
+              }),
               transform: [
                 {
-                  translateX: particleAnim.interpolate({
+                  translateX: flowAnims[p.waveIdx].interpolate({
                     inputRange: [0, 1],
-                    outputRange: [p.startX, p.startX + SCREEN_WIDTH * p.speed],
+                    outputRange: [p.startX, p.startX + PARTICLE_TRAVEL],
                   }),
                 },
                 {
-                  translateY: waveAnim.interpolate({
-                    inputRange: [0, 1],
+                  translateY: glowAnim.interpolate({
+                    inputRange: [0, 0.5, 1],
                     outputRange: [
                       SCREEN_HEIGHT * wave.yOffset
                         + Math.sin(p.startX * wave.frequency + wave.phase) * wave.amplitude,
                       SCREEN_HEIGHT * wave.yOffset
-                        + Math.sin((p.startX + SCREEN_WIDTH * p.speed) * wave.frequency + wave.phase + 1) * wave.amplitude,
+                        + Math.sin((p.startX + PARTICLE_TRAVEL * 0.5) * wave.frequency + wave.phase) * wave.amplitude,
+                      SCREEN_HEIGHT * wave.yOffset
+                        + Math.sin((p.startX + PARTICLE_TRAVEL) * wave.frequency + wave.phase) * wave.amplitude,
                     ],
                   }),
                 },
@@ -1102,7 +1120,6 @@ const XMBWaveBackground = ({ theme, style }) => {
                 height: p.size,
                 borderRadius: p.size,
                 backgroundColor: theme.primaryColor,
-                opacity: 0.6,
               }}
             />
           </Animated.View>
@@ -1112,10 +1129,17 @@ const XMBWaveBackground = ({ theme, style }) => {
   );
 };
 
-// ========== XMB WAVE 3 (PS3 style - 4 overlapping waves + orbs + lines) ==========
+// ========== XMB WAVE 3 (PS3 style - seamless flowing waves + orbs) ==========
 const XMBWave3Background = ({ theme, style }) => {
-  const waveAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const flowAnims = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  const flowDurations = [11000, 15000, 19000, 23000];
 
   // 3 speed-tier animations for seamless orb wrapping
   const tierAnims = useRef([
@@ -1127,21 +1151,25 @@ const XMBWave3Background = ({ theme, style }) => {
   const tierDurations = [10000, 16000, 22000];
 
   useEffect(() => {
-    // Wave: seamless 0→1→0 round trip (no jump on loop)
+    // Glow + vertical bob: seamless 0→1→0
     Animated.loop(
       Animated.sequence([
-        Animated.timing(waveAnim, { toValue: 1, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(waveAnim, { toValue: 0, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     ).start();
 
-    // Glow: seamless 0→1→0 round trip
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ]),
-    ).start();
+    // Each wave flows horizontally by exactly its period for seamless wrap
+    flowAnims.forEach((anim, i) => {
+      Animated.loop(
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: flowDurations[i],
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ).start();
+    });
 
     // Each tier: 0→1 linear loop, orbs travel exactly SCREEN_WIDTH+60
     tierAnims.forEach((anim, i) => {
@@ -1154,19 +1182,21 @@ const XMBWave3Background = ({ theme, style }) => {
         }),
       ).start();
     });
-  }, [waveAnim, glowAnim, tierAnims]);
+  }, [glowAnim, flowAnims, tierAnims]);
 
   const waves = useMemo(() => {
     const arr = [];
     const numWaves = 4;
     for (let i = 0; i < numWaves; i++) {
       const depth = i / numWaves;
+      const frequency = 0.006 + i * 0.003;
+      const period = (2 * Math.PI) / frequency;
       arr.push({
         key: i,
-        amplitude: 40 + Math.random() * 50,
-        frequency: 0.003 + Math.random() * 0.005,
-        phase: Math.random() * Math.PI * 2,
-        phase2: Math.random() * Math.PI * 2,
+        amplitude: 35 + depth * 45,
+        frequency,
+        period,
+        phase: i * 1.1,
         yOffset: 0.15 + depth * 0.7,
         opacity: 0.15 + depth * 0.25,
         parallax: 0.3 + depth * 0.7,
@@ -1177,7 +1207,7 @@ const XMBWave3Background = ({ theme, style }) => {
 
   const orbs = useMemo(() => {
     const arr = [];
-    const numOrbs = 30;
+    const numOrbs = 20;
     for (let i = 0; i < numOrbs; i++) {
       const waveIdx = Math.floor(Math.random() * 4);
       const roll = Math.random();
@@ -1199,7 +1229,7 @@ const XMBWave3Background = ({ theme, style }) => {
     return arr;
   }, []);
 
-  const STEP = 8;
+  const STEP = 12;
   const TRAVEL = SCREEN_WIDTH + 60;
 
   return (
@@ -1236,20 +1266,20 @@ const XMBWave3Background = ({ theme, style }) => {
           }}
         />
       </Animated.View>
-      {/* 4 overlapping vector wave lines */}
+      {/* 4 overlapping wave lines - each flows horizontally by exactly one period (seamless) */}
       {waves.map(wave => (
         <Animated.View
           key={wave.key}
           style={[
             styles.absolute,
             {
-              opacity: waveAnim.interpolate({
+              opacity: glowAnim.interpolate({
                 inputRange: [0, 0.5, 1],
                 outputRange: [wave.opacity * 0.4, wave.opacity, wave.opacity * 0.4],
               }),
               transform: [
                 {
-                  translateY: waveAnim.interpolate({
+                  translateY: glowAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [-12 * wave.parallax, 12 * wave.parallax],
                   }),
@@ -1258,27 +1288,41 @@ const XMBWave3Background = ({ theme, style }) => {
             },
           ]}
         >
-          {Array.from({ length: Math.ceil(SCREEN_WIDTH / STEP) + 8 }, (_, x) => {
-            const px = x * STEP;
-            const py = SCREEN_HEIGHT * wave.yOffset
-              + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude
-              + Math.sin(px * wave.frequency * 1.7 + wave.phase2) * (wave.amplitude * 0.3)
-              + Math.sin(px * wave.frequency * 0.5 + wave.phase * 0.7) * (wave.amplitude * 0.15);
-            return (
-              <View
-                key={x}
-                style={{
-                  position: 'absolute',
-                  left: px,
-                  top: py,
-                  width: STEP,
-                  height: 1,
-                  backgroundColor: theme.primaryColor,
-                  opacity: 0.6 + wave.parallax * 0.3,
-                }}
-              />
-            );
-          })}
+          <Animated.View
+            style={[
+              styles.absolute,
+              {
+                transform: [
+                  {
+                    translateX: flowAnims[wave.key].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -wave.period],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {Array.from({ length: Math.ceil((wave.period + SCREEN_WIDTH) / STEP) + 2 }, (_, x) => {
+              const px = x * STEP;
+              const py = SCREEN_HEIGHT * wave.yOffset
+                + Math.sin(px * wave.frequency + wave.phase) * wave.amplitude;
+              return (
+                <View
+                  key={x}
+                  style={{
+                    position: 'absolute',
+                    left: px,
+                    top: py,
+                    width: STEP,
+                    height: 1,
+                    backgroundColor: theme.primaryColor,
+                    opacity: 0.6 + wave.parallax * 0.3,
+                  }}
+                />
+              );
+            })}
+          </Animated.View>
         </Animated.View>
       ))}
       {/* Orbs - each tier travels exactly TRAVEL pixels for seamless wrap */}
@@ -1304,7 +1348,7 @@ const XMBWave3Background = ({ theme, style }) => {
                   }),
                 },
                 {
-                  translateY: waveAnim.interpolate({
+                  translateY: glowAnim.interpolate({
                     inputRange: [0, 0.5, 1],
                     outputRange: [
                       SCREEN_HEIGHT * wave.yOffset
