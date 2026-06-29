@@ -157,7 +157,7 @@
     <section class="u-black u-clearfix u-section-4" id="carousel_97af">
       <div class="u-black u-container-style u-expanded-width u-group u-group-1">
         <div class="u-container-layout u-container-layout-1">
-          <img class="u-image u-image-default u-image-1" src="images/image_2024-02-18_104714269.png" alt="DON'T PANIC" data-image-width="942" data-image-height="965" style="cursor:pointer" onclick="var m=document.getElementById('sec-1538');if(m){m.style.display='flex';m.style.opacity='1';m.style.pointerEvents='auto';m.classList.add('u-dialog-open');var c=m.querySelector('.u-dialog-close-button');if(c){c.onclick=function(){m.style.display='none';m.classList.remove('u-dialog-open');};}}">
+          <img id="dontPanicImg" class="u-image u-image-default u-image-1" src="images/image_2024-02-18_104714269.png" alt="DON'T PANIC" data-image-width="942" data-image-height="965" style="cursor:pointer;pointer-events:auto;position:relative;z-index:10;">
         </div>
       </div>
       <div class="data-layout-selected u-clearfix u-gutter-56 u-layout-wrap u-layout-wrap-1">
@@ -442,6 +442,42 @@
       }
     }
   }
+})();
+</script>
+<script>
+(function() {
+  function openModal() {
+    var m = document.getElementById('sec-1538');
+    if (m) {
+      m.style.display = 'flex';
+      m.style.opacity = '1';
+      m.style.pointerEvents = 'auto';
+      m.classList.add('u-dialog-open');
+      var c = m.querySelector('.u-dialog-close-button');
+      if (c) {
+        c.onclick = function() {
+          m.style.display = 'none';
+          m.classList.remove('u-dialog-open');
+        };
+      }
+    }
+  }
+  function attachClick() {
+    var img = document.getElementById('dontPanicImg');
+    if (img) {
+      img.addEventListener('click', openModal);
+      img.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        openModal();
+      });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachClick);
+  } else {
+    attachClick();
+  }
+  setTimeout(attachClick, 2000);
 })();
 </script>
 </body></html>
