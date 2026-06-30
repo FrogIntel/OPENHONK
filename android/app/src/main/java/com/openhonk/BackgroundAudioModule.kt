@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -15,7 +16,9 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebView
+import android.widget.FrameLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Callback
@@ -28,6 +31,7 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     private var isServiceRunning = false
     private var keepWebViewAlive = false
+    private var overlayView: View? = null
     private val handler = Handler(Looper.getMainLooper())
     private val resumeRunnable = object : Runnable {
         override fun run() {
@@ -146,6 +150,36 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     @ReactMethod
+    fun requestOverlayPermission() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(reactApplicationContext)) {
+                val activity = getCurrentActivity() ?: return
+                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                    data = Uri.parse("package:${reactApplicationContext.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                activity.startActivity(intent)
+            }
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to request overlay permission", e)
+        }
+    }
+
+    @ReactMethod
+    fun hasOverlayPermission(callback: Callback) {
+        try {
+            val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Settings.canDrawOverlays(reactApplicationContext)
+            } else {
+                true
+            }
+            callback.invoke(granted)
+        } catch (e: Exception) {
+            callback.invoke(false)
+        }
+    }
+
+    @ReactMethod
     fun showNotification(title: String, message: String) {
         try {
             val context = reactApplicationContext
@@ -182,6 +216,7 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun onHostPause() {
         if (keepWebViewAlive) {
+            showOverlayWindow()
             resumeAllWebViews()
             handler.postDelayed(resumeRunnable, 2000)
         }
@@ -189,13 +224,60 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun onHostResume() {
         handler.removeCallbacks(resumeRunnable)
+        removeOverlayWindow()
         resumeAllWebViews()
     }
 
     override fun onHostDestroy() {
         handler.removeCallbacks(resumeRunnable)
+        removeOverlayWindow()
         if (isServiceRunning) {
             stopBackgroundAudio()
+        }
+    }
+
+    private fun showOverlayWindow() {
+        if (overlayView != null) return
+        try {
+            val context = reactApplicationContext
+            val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            overlayView = View(context).apply {
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                layoutParams = FrameLayout.LayoutParams(1, 1)
+            }
+            val params = WindowManager.LayoutParams(
+                1, 1,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                else
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                x = 0
+                y = 0
+            }
+            wm.addView(overlayView, params)
+            Log.d("BackgroundAudioModule", "Overlay window added to keep WebView alive")
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to show overlay window", e)
+        }
+    }
+
+    private fun removeOverlayWindow() {
+        if (overlayView == null) return
+        try {
+            val context = reactApplicationContext
+            val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            wm.removeView(overlayView)
+            overlayView = null
+            Log.d("BackgroundAudioModule", "Overlay window removed")
+        } catch (e: Exception) {
+            Log.e("BackgroundAudioModule", "Failed to remove overlay window", e)
         }
     }
 
@@ -206,6 +288,10 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
             try {
                 webView.onResume()
                 webView.resumeTimers()
+                webView.evaluateJavascript(
+                    "(function(){try{document.querySelectorAll('video,audio').forEach(function(m){if(m.readyState>=2&&!m.ended&&!m.__openhonk_user_paused){m.play().catch(function(){});}});}catch(e){}})();",
+                    null
+                )
             } catch (e: Exception) {
                 Log.e("BackgroundAudioModule", "Failed to resume WebView", e)
             }

@@ -65,6 +65,7 @@
         <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed modal popup on home page</strong> — the welcome modal now shows correctly on first run, opens manually via DON'T PANIC button and logos, and never reappears after dismissal even with fast scrolling or swiping</span></div>
         <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed tile background colors</strong> — home screen tiles now show yellow placeholder background while screenshots load, and black background for favicon tiles; no more black borders on first load</span></div>
         <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed scroll lock after modal close</strong> — scrolling is now properly restored after dismissing the first-run modal</span></div>
+        <div class="item"><span class="bullet">&#9679;</span><span class="text"><strong>Fixed background audio stopping after a few minutes</strong> — added a partial wake lock and an overlay window to keep the WebView active when the app is in the background, preventing the system from suspending media playback; a new "Display Over Apps" permission is requested during setup</span></div>
       </div>
 
       <div class="section">

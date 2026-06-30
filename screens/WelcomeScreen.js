@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCachedSource, initStoreScreenshots, isStoreScreenshotsEnabled, setStoreScreenshots } from '../components/screenshotCache';
-import { requestUnrestrictedBattery, isBatteryUnrestricted, requestNotificationPermission, isNotificationPermissionGranted } from '../utils/backgroundAudio';
+import { requestUnrestrictedBattery, isBatteryUnrestricted, requestNotificationPermission, isNotificationPermissionGranted, requestOverlayPermission, hasOverlayPermission } from '../utils/backgroundAudio';
 import { appData } from '../data/urls';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -18,6 +18,7 @@ const WelcomeScreen = ({ navigation }) => {
   const [keepCookies, setKeepCookies] = useState(false);
   const [batteryGranted, setBatteryGranted] = useState(false);
   const [notifGranted, setNotifGranted] = useState(false);
+  const [overlayGranted, setOverlayGranted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const swipeAnim = useRef(new Animated.Value(0)).current;
@@ -31,7 +32,7 @@ const WelcomeScreen = ({ navigation }) => {
     { icon: '🔒', title: 'Privacy & Security', desc: 'WebView runs in incognito mode — sessions clear when you close.\nHTTP sites show a red badge and block logins.\nHTTPS sites show a green badge.' },
     { icon: '🎬', title: 'Background Playback', desc: 'Videos and audio keep playing when you switch apps or turn off the screen.' },
     { icon: '🛡️', title: 'AdBlock Built-in', desc: 'Ads are automatically blocked across all websites. The block list updates daily.' },
-    { icon: '⚡', title: 'Permissions', desc: 'Grant unrestricted battery access so background playback isn\'t stopped by the system.', permissionsStep: true },
+    { icon: '⚡', title: 'Permissions', desc: 'Grant these permissions so background playback works when you switch apps or lock the screen.', permissionsStep: true },
   ];
 
   useEffect(() => {
@@ -41,6 +42,7 @@ const WelcomeScreen = ({ navigation }) => {
     });
     isBatteryUnrestricted().then(setBatteryGranted);
     isNotificationPermissionGranted().then(setNotifGranted);
+    hasOverlayPermission().then(setOverlayGranted);
     AsyncStorage.getItem('@keep_cookies').then(val => {
       setKeepCookies(val === 'true');
     });
@@ -77,6 +79,15 @@ const WelcomeScreen = ({ navigation }) => {
     try {
       const welcomeShown = await AsyncStorage.getItem('welcomeShown');
       const ageConfirmedV11 = await AsyncStorage.getItem('ageConfirmed_v11');
+      const overlayPermChecked = await AsyncStorage.getItem('overlayPermChecked_v1014');
+      const overlayGranted = await hasOverlayPermission();
+      setOverlayGranted(overlayGranted);
+      // If user hasn't granted overlay permission yet and hasn't been prompted for v1.0.14,
+      // send them to the permissions step to grant it
+      if (welcomeShown === 'true' && ageConfirmedV11 === 'true' && (!overlayGranted && overlayPermChecked !== 'true')) {
+        setCurrentStep(steps.length - 1);
+        return;
+      }
       if (welcomeShown === 'true' && ageConfirmedV11 === 'true') {
         navigation.replace('MainTabs');
       } else if (welcomeShown === 'true' && ageConfirmedV11 !== 'true') {
@@ -94,6 +105,7 @@ const WelcomeScreen = ({ navigation }) => {
         await AsyncStorage.setItem('welcomeShown', 'true');
       }
       await AsyncStorage.setItem('ageConfirmed_v11', 'true');
+      await AsyncStorage.setItem('overlayPermChecked_v1014', 'true');
       navigation.replace('MainTabs');
     } catch (error) {
       console.error('Error in handleContinue:', error);
@@ -108,11 +120,12 @@ const WelcomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     if (!ageConfirmed) {
       BackHandler.exitApp();
       return;
     }
+    await AsyncStorage.setItem('overlayPermChecked_v1014', 'true');
     handleContinue();
   };
 
@@ -182,15 +195,6 @@ const WelcomeScreen = ({ navigation }) => {
         style={styles.gradient}
       />
       <View style={styles.glassAccent} />
-
-      {/* Skip button */}
-      <TouchableOpacity
-        style={[styles.skipButton, { top: insets.top + 15, opacity: ageConfirmed ? 1 : 0.3 }]}
-        onPress={handleSkip}
-        disabled={!ageConfirmed}
-      >
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
 
       {/* Progress dots */}
       <View style={[styles.progressContainer, { top: insets.top + 15 }]}>
@@ -303,6 +307,21 @@ const WelcomeScreen = ({ navigation }) => {
               >
                 <Text style={styles.permissionButtonText}>
                   {batteryGranted ? '✓ Battery Unrestricted' : 'Grant Unrestricted Battery'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.permissionButton, overlayGranted && styles.permissionGranted]}
+                onPress={async () => {
+                  requestOverlayPermission();
+                  setTimeout(async () => {
+                    const granted = await hasOverlayPermission();
+                    setOverlayGranted(granted);
+                  }, 1000);
+                }}
+              >
+                <Text style={styles.permissionButtonText}>
+                  {overlayGranted ? '✓ Display Over Apps Enabled' : 'Enable Display Over Apps'}
                 </Text>
               </TouchableOpacity>
             </View>

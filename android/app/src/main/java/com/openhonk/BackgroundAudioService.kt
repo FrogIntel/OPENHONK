@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -23,6 +24,7 @@ class BackgroundAudioService : Service() {
     }
 
     private var mediaSession: MediaSessionCompat? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -58,10 +60,25 @@ class BackgroundAudioService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+
+        // Acquire a partial wake lock to prevent CPU from sleeping
+        if (wakeLock == null) {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OpenHonk::BackgroundAudio")
+            wakeLock?.setReferenceCounted(false)
+        }
+        if (wakeLock?.isHeld == false) {
+            wakeLock?.acquire(3 * 60 * 60 * 1000L) // 3 hours max
+        }
+
         return START_STICKY
     }
 
     override fun onDestroy() {
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+        }
+        wakeLock = null
         mediaSession?.run {
             isActive = false
             release()

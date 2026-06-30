@@ -38,6 +38,22 @@ export const requestNotificationPermission = () => {
   }
 };
 
+export const requestOverlayPermission = () => {
+  if (Platform.OS === 'android' && BackgroundAudioModule?.requestOverlayPermission) {
+    BackgroundAudioModule.requestOverlayPermission();
+  }
+};
+
+export const hasOverlayPermission = () => {
+  return new Promise((resolve) => {
+    if (Platform.OS === 'android' && BackgroundAudioModule?.hasOverlayPermission) {
+      BackgroundAudioModule.hasOverlayPermission((result) => resolve(result));
+    } else {
+      resolve(true);
+    }
+  });
+};
+
 export const isNotificationPermissionGranted = () => {
   return new Promise((resolve) => {
     if (Platform.OS === 'android' && BackgroundAudioModule?.isNotificationPermissionGranted) {

@@ -2,7 +2,7 @@ diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactna
 index 80c6803..936c9c3 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
-@@ -112,6 +112,18 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+@@ -112,6 +112,24 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
          // do nothing
      }
  
@@ -16,6 +16,12 @@ index 80c6803..936c9c3 100644
 +    public void onVisibilityChanged(View changedView, int visibility) {
 +        // Keep WebView visible to prevent media pause
 +        super.onVisibilityChanged(changedView, View.VISIBLE);
++    }
++
++    @Override
++    public void onVisibilityAggregated(boolean isVisible) {
++        // Prevent Chromium from pausing media and abandoning audio focus when app goes to background
++        super.onVisibilityAggregated(true);
 +    }
 +
      @Override

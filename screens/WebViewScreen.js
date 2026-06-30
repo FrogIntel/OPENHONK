@@ -1054,6 +1054,46 @@ const WebViewScreen = ({ route, navigation }) => {
         }}
         injectedJavaScript={!isReelBrowser ? `
           (function() {
+            // === Background media keep-alive ===
+            // Prevent the page from knowing it's in the background
+            try {
+              Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
+              Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
+              Object.defineProperty(document, 'webkitHidden', { get: function() { return false; }, configurable: true });
+              Object.defineProperty(document, 'webkitVisibilityState', { get: function() { return 'visible'; }, configurable: true });
+            } catch(e) {}
+            // Block visibilitychange and pagehide events from reaching the page
+            ['visibilitychange', 'webkitvisibilitychange', 'pagehide', 'freeze', 'resume'].forEach(function(ev) {
+              document.addEventListener(ev, function(e) { e.stopImmediatePropagation(); }, true);
+              window.addEventListener(ev, function(e) { e.stopImmediatePropagation(); }, true);
+            });
+            // Auto-resume any media that gets paused while in background
+            document.addEventListener('pause', function(e) {
+              if (e.target && (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
+                var m = e.target;
+                if (m.readyState >= 2 && !m.ended && !m.__openhonk_user_paused) {
+                  setTimeout(function() { m.play().catch(function() {}); }, 100);
+                }
+              }
+            }, true);
+            // Track user-initiated pauses
+            document.addEventListener('click', function(e) {
+              var v = e.target.closest('video, button[aria-label*="pause"], button[aria-label*="Play"], .vjs-play-button, .ytp-play-button, .play-button, .pause-button');
+              if (v) {
+                document.querySelectorAll('video, audio').forEach(function(m) {
+                  m.__openhonk_user_paused = m.paused;
+                });
+              }
+            }, true);
+            // Periodic media resume check
+            setInterval(function() {
+              document.querySelectorAll('video, audio').forEach(function(m) {
+                if (m.readyState >= 2 && m.paused && !m.ended && !m.__openhonk_user_paused) {
+                  m.play().catch(function() {});
+                }
+              });
+            }, 2000);
+
             function isPdfUrl(url) {
               var u = url.toLowerCase();
               if (u.indexOf('docs.google.com/gview') !== -1) return false;
