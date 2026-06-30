@@ -855,6 +855,22 @@ const SettingsScreen = ({ navigation }) => {
             >
               <Text style={[styles.smallButtonText, { color: '#ff4444' }]}>CLEAR ALL</Text>
             </TouchableOpacity>
+            {filteredCookieDomains.length > 0 && (
+              <TouchableOpacity
+                style={[styles.smallButton, { borderColor: theme.primaryColor }]}
+                onPress={() => {
+                  if (selectedCookies.size === filteredCookieDomains.length) {
+                    setSelectedCookies(new Set());
+                  } else {
+                    setSelectedCookies(new Set(filteredCookieDomains));
+                  }
+                }}
+              >
+                <Text style={[styles.smallButtonText, { color: theme.primaryColor }]}>
+                  {selectedCookies.size === filteredCookieDomains.length ? 'DESELECT ALL' : 'SELECT ALL'}
+                </Text>
+              </TouchableOpacity>
+            )}
             {selectedCookies.size > 0 && (
               <TouchableOpacity
                 style={[styles.smallButton, { borderColor: '#ff4444' }]}

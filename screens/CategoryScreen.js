@@ -273,6 +273,19 @@ const CategoryScreen = ({ route, navigation }) => {
     setNotifUrls([]);
   };
 
+  const readAllNotifications = async () => {
+    const now = new Date().toISOString();
+    const viewedRaw = await AsyncStorage.getItem('@notifications_viewed');
+    let viewed = {};
+    try { viewed = JSON.parse(viewedRaw) || {}; } catch (e) {}
+    const updatedViewed = { ...viewed };
+    for (const n of notifUrls) {
+      if (n.id) updatedViewed[n.id] = n.date || now;
+    }
+    await AsyncStorage.setItem('@notifications_viewed', JSON.stringify(updatedViewed));
+    setNotifUrls(notifUrls.map(n => ({ ...n, isNew: false })));
+  };
+
   // Get featured websites for carousel (first few URLs)
   const featuredWebsites = category.urls ? getFilteredUrls(category.urls.filter(url => url.url && url.url.trim() !== '')).slice(0, 10) : [];
 
@@ -310,9 +323,14 @@ const CategoryScreen = ({ route, navigation }) => {
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={
             notifUrls.length > 0 ? (
-              <TouchableOpacity style={[styles.clearAllBtn, { borderColor: theme.primaryColor + '66' }]} onPress={clearAllNotifications}>
-                <Text style={[styles.clearAllText, { color: theme.primaryColor }]}>Clear All</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, paddingBottom: 10 }}>
+                <TouchableOpacity style={[styles.clearAllBtn, { borderColor: theme.primaryColor + '66' }]} onPress={readAllNotifications}>
+                  <Text style={[styles.clearAllText, { color: theme.primaryColor }]}>Read All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.clearAllBtn, { borderColor: theme.primaryColor + '66' }]} onPress={clearAllNotifications}>
+                  <Text style={[styles.clearAllText, { color: theme.primaryColor }]}>Clear All</Text>
+                </TouchableOpacity>
+              </View>
             ) : null
           }
           ListEmptyComponent={
@@ -321,7 +339,7 @@ const CategoryScreen = ({ route, navigation }) => {
             </View>
           }
           renderItem={({ item }) => {
-            const isAdblock = item.id === 'adblock';
+            const isAdblock = String(item.id || '').startsWith('adblock');
             const isNewContent = item.url && item.url.startsWith('openhonk://');
             const handleNotifPress = () => {
               if (isNewContent) {

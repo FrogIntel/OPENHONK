@@ -1,7 +1,10 @@
 package com.openhonk
 
+import android.app.PictureInPictureParams
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Build
+import android.util.Rational
 import androidx.core.view.WindowCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -37,5 +40,10 @@ class MainActivity : ReactActivity() {
       val controller = WindowCompat.getInsetsController(window, window.decorView)
       controller?.isAppearanceLightNavigationBars = false
     }
+  }
+
+  override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+    super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+    PiPModule.notifyPiPChanged(isInPictureInPictureMode)
   }
 }

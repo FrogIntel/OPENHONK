@@ -50,13 +50,13 @@ const NewContentScreen = ({ navigation }) => {
           key={`new-content-grid-${numColumns}`}
           style={styles.content}
           contentContainerStyle={{ paddingTop: 60, paddingBottom: insets.bottom + 20, paddingHorizontal: tilePadding, alignItems: 'center' }}
-          data={newContent}
+          data={newContent.filter(item => item.version === 'v1.0.14')}
           numColumns={numColumns}
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={
             <View style={styles.headerSection}>
               <Text style={[styles.headerText, { color: theme.primaryColor }]}>New Content Added</Text>
-              <Text style={[styles.subHeaderText, { color: theme.textSecondaryColor }]}>{newContent.length} new entries added in v1.0.5</Text>
+              <Text style={[styles.subHeaderText, { color: theme.textSecondaryColor }]}>{newContent.filter(item => item.version === 'v1.0.14').length} new entries added in v1.0.14</Text>
               <TouchableOpacity style={[styles.markAllBtn, { borderColor: theme.primaryColor + '66' }]} onPress={handleMarkAll}>
                 <Text style={[styles.markAllText, { color: theme.primaryColor }]}>Mark All as Seen</Text>
               </TouchableOpacity>

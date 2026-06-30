@@ -57,7 +57,7 @@ const prefetchedUrls = new Set();
 const cachedScreenshots = new Map();
 const queuedUrls = new Set();
 let storeScreenshotsEnabled = false;
-const RETRY_INTERVAL_MS = 5 * 60 * 1000;
+const RETRY_INTERVAL_MS = 2 * 60 * 1000;
 
 // Cache readiness state + listeners for instant re-render when cache loads
 let cacheReady = false;

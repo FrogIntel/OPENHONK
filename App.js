@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { clearAllCookies } from './components/cookieManager';
 import ThemedBackground from './components/ThemedBackground';
 import ErrorBoundary from './components/ErrorBoundary';
+import CenteredToast from './components/CenteredToast';
 
 import IntroScreen from './screens/IntroScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -238,6 +239,7 @@ export default function App() {
             <Stack.Screen name="NewContent" component={NewContentScreen} />
           </Stack.Navigator>
         </NavigationContainer>
+        <CenteredToast />
       </View>
     </ThemeProvider>
     </ErrorBoundary>

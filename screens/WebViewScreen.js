@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert, Clipboard, ToastAndroid, Animated } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform, StatusBar, BackHandler, Modal, Linking, Alert, Clipboard, Animated } from 'react-native';
+import { showToast } from '../components/CenteredToast';
 import { startBackgroundAudio, stopBackgroundAudio } from '../utils/backgroundAudio';
 import { WebView } from 'react-native-webview';
 import RNFS from 'react-native-fs';
@@ -10,7 +11,10 @@ import ThemedBackground from '../components/ThemedBackground';
 import FunkyLoader from '../components/FunkyLoader';
 import { isAdDomain, getAdBlockJS, fetchAdBlockList } from '../components/adBlockList';
 import { trackCookieDomain, getCookieDomains } from '../components/cookieManager';
-import { NativeModules } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native';
+
+const { PiPModule } = NativeModules;
+const pipEmitter = PiPModule ? new NativeEventEmitter(PiPModule) : null;
 
 const { CookiePersistModule, OrientationModule } = NativeModules;
 const RUMBLE_COOKIE_KEY = '@rumble_cookies';
@@ -21,7 +25,8 @@ const Icon = ({ name, size, color }) => {
     'menu': '☰',
     'refresh': '↻',
     'copy': '⧉',
-    'incognito': '🕶',
+    'cookie': '🍪',
+    'pip': '◳',
   };
   return <Text style={{ fontSize: size, color }}>{iconMap[name] || '•'}</Text>;
 };
@@ -44,12 +49,81 @@ const WebViewScreen = ({ route, navigation }) => {
   const [keepCookies, setKeepCookies] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [gameMode, setGameMode] = useState(false);
+  const [isPiPMode, setIsPiPMode] = useState(false);
+  const [hasVideo, setHasVideo] = useState(false);
   const scrollPositions = useRef({});
   const isGoingBack = useRef(false);
   const keepCookiesRef = useRef(false);
   const saveAllCookiesTimer = useRef(null);
   const isReelBrowser = title === 'REEL' || url?.includes('reel_browser');
   const initialUrl = url;
+
+  useEffect(() => {
+    if (!pipEmitter) return;
+    const subscription = pipEmitter.addListener('pipModeChanged', (isInPiP) => {
+      setIsPiPMode(isInPiP);
+      if (isInPiP) {
+        if (webViewRef.current) {
+          webViewRef.current.injectJavaScript(`
+          (function() {
+            var v = document.querySelector('video');
+            if (v) {
+              document.body.style.margin = '0';
+              document.body.style.padding = '0';
+              document.body.style.overflow = 'hidden';
+              document.body.style.backgroundColor = '#000';
+              var allElems = document.body.querySelectorAll('*');
+              for (var i = 0; i < allElems.length; i++) {
+                var el = allElems[i];
+                if (el === v || v.contains(el)) continue;
+                if (el.contains(v)) continue;
+                el.style.display = 'none';
+              }
+              v.style.position = 'fixed';
+              v.style.top = '0';
+              v.style.left = '0';
+              v.style.width = '100%';
+              v.style.height = '100%';
+              v.style.zIndex = '9999';
+              v.style.objectFit = 'contain';
+              v.play().catch(function() {});
+            }
+          })();
+        `);
+        }
+      } else if (!isInPiP) {
+        isPiPTransitioning.current = false;
+        if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(`
+          (function() {
+            var v = document.querySelector('video');
+            if (v) {
+              v.style.position = '';
+              v.style.top = '';
+              v.style.left = '';
+              v.style.width = '';
+              v.style.height = '';
+              v.style.zIndex = '';
+              v.style.objectFit = '';
+            }
+            document.body.style.margin = '';
+            document.body.style.padding = '';
+            document.body.style.overflow = '';
+            document.body.style.backgroundColor = '';
+            var allElems = document.body.querySelectorAll('*');
+            for (var i = 0; i < allElems.length; i++) {
+              var el = allElems[i];
+              if (el.style && el.style.display === 'none') {
+                el.style.display = '';
+              }
+            }
+          })();
+        `);
+        }
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (isReelBrowser) {
@@ -246,11 +320,7 @@ const WebViewScreen = ({ route, navigation }) => {
   const handleCopyUrl = () => {
     if (currentUrl) {
       Clipboard.setString(currentUrl);
-      if (Platform.OS === 'android') {
-        ToastAndroid.show('URL copied to clipboard', ToastAndroid.SHORT);
-      } else {
-        Alert.alert('Copied', 'URL copied to clipboard');
-      }
+      showToast('URL copied to clipboard');
     }
   };
 
@@ -263,8 +333,13 @@ const WebViewScreen = ({ route, navigation }) => {
     }
   };
 
+  const isPiPTransitioning = useRef(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isPiPMode) {
+        return true;
+      }
       if (canGoBack && webViewRef.current) {
         isGoingBack.current = true;
         webViewRef.current.goBack();
@@ -277,11 +352,11 @@ const WebViewScreen = ({ route, navigation }) => {
       return false;
     });
     return () => backHandler.remove();
-  }, [canGoBack, navigation]);
+  }, [canGoBack, navigation, isPiPMode]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0a0a0f' }}>
-      {!gameMode && <ThemedBackground theme={theme} />}
+    <View style={{ flex: 1, backgroundColor: isPiPMode ? '#000' : '#0a0a0f' }}>
+      {!gameMode && !isPiPMode && <ThemedBackground theme={theme} />}
       <StatusBar hidden={true} translucent={true} />
       <Modal
         visible={reelIntroVisible}
@@ -313,7 +388,7 @@ const WebViewScreen = ({ route, navigation }) => {
         source={{ uri: currentUrl }}
         originWhitelist={['*']}
         webviewDebuggingEnabled={__DEV__}
-        style={[styles.webview, { marginTop: (isReelBrowser || gameMode) ? 0 : 50, marginBottom: (isReelBrowser || gameMode) ? 0 : Math.max(insets.bottom, 0) }]}
+        style={[styles.webview, { marginTop: (isReelBrowser || gameMode || isPiPMode) ? 0 : 50, marginBottom: (isReelBrowser || gameMode || isPiPMode) ? 0 : Math.max(insets.bottom, 0) }]}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={!currentUrl?.includes('itch.io')}
@@ -371,6 +446,7 @@ const WebViewScreen = ({ route, navigation }) => {
         }}
         onNavigationStateChange={(navState) => {
           setCanGoBack(navState.canGoBack);
+          setHasVideo(false);
           if (navState.url) {
             trackCookieDomain(navState.url);
             // Save cookies when leaving a rumble page
@@ -383,9 +459,10 @@ const WebViewScreen = ({ route, navigation }) => {
           }
         }}
         onShouldStartLoadWithRequest={(request) => {
-          // Special case: thelightpaper.co.uk PDFs open internally via Google Docs viewer
+          // Open all PDFs internally via Google Docs viewer
           const lowerUrl = request.url.toLowerCase();
-          if (lowerUrl.includes('thelightpaper.co.uk') && (lowerUrl.endsWith('.pdf') || lowerUrl.includes('.pdf?'))) {
+          const isPdf = (lowerUrl.endsWith('.pdf') || lowerUrl.includes('.pdf?') || lowerUrl.includes('.pdf#')) && !lowerUrl.includes('docs.google.com/gview');
+          if (isPdf) {
             if (webViewRef.current) {
               const viewerUrl = 'https://docs.google.com/gview?embedded=1&url=' + encodeURIComponent(request.url);
               webViewRef.current.injectJavaScript(`window.location.href = ${JSON.stringify(viewerUrl)};`);
@@ -589,6 +666,68 @@ const WebViewScreen = ({ route, navigation }) => {
               style.textContent = 'html,body{margin:0!important;padding:0!important;background:#1a2e1a!important;overflow:hidden!important}.header,.footer,.game_info,.formatted_description,.user_formatted,.column,.view_game_footer,.game_devlog,.game_comments,.footer_nav,.columns,.social_buttons,.community{display:none!important}*{-webkit-tap-highlight-color:transparent!important}';
               document.head.appendChild(style);
             }
+            // Video detection for PiP button
+            function checkVideos() {
+              var found = false;
+              // Check for playing video elements
+              var videos = document.querySelectorAll('video');
+              for (var i = 0; i < videos.length; i++) {
+                if (!videos[i].paused && videos[i].readyState >= 2) {
+                  found = true;
+                  break;
+                }
+              }
+              // Check same-origin iframes for videos
+              if (!found) {
+                var iframes = document.querySelectorAll('iframe');
+                for (var j = 0; j < iframes.length; j++) {
+                  try {
+                    var iframeDoc = iframes[j].contentDocument || iframes[j].contentWindow.document;
+                    var iframeVideos = iframeDoc.querySelectorAll('video');
+                    for (var k = 0; k < iframeVideos.length; k++) {
+                      if (!iframeVideos[k].paused) {
+                        found = true;
+                        break;
+                      }
+                    }
+                  } catch(e) {}
+                  if (found) break;
+                }
+              }
+              // Check for video-related iframes (cross-origin, can't inspect)
+              if (!found) {
+                var iframes2 = document.querySelectorAll('iframe');
+                var videoPatterns = ['player', 'video', 'embed', 'rumble', 'youtube', 'youtu.be', 'vimeo', 'dailymotion', 'bitchute', 'onevsp', 'streamable', 'wistia', 'jwplayer', 'hls', 'mp4', 'brightcove', 'vidyard'];
+                for (var m = 0; m < iframes2.length; m++) {
+                  var src = (iframes2[m].src || '').toLowerCase();
+                  for (var n = 0; n < videoPatterns.length; n++) {
+                    if (src.indexOf(videoPatterns[n]) !== -1) {
+                      found = true;
+                      break;
+                    }
+                  }
+                  if (found) break;
+                }
+              }
+              // Check for video elements that exist and have a src (might be loading)
+              if (!found) {
+                for (var p = 0; p < videos.length; p++) {
+                  if (videos[p].src || videos[p].currentSrc || (videos[p].querySelector('source') && videos[p].querySelector('source').src)) {
+                    found = true;
+                    break;
+                  }
+                }
+              }
+              try { window.ReactNativeWebView.postMessage(JSON.stringify({type:'video_state', hasVideo: found})); } catch(e) {}
+            }
+            var videoCheckTimer = setInterval(checkVideos, 1000);
+            document.addEventListener('play', function(e) { if (e.target.tagName === 'VIDEO') setTimeout(checkVideos, 200); }, true);
+            document.addEventListener('pause', function(e) { if (e.target.tagName === 'VIDEO') setTimeout(checkVideos, 200); }, true);
+            document.addEventListener('loadeddata', function(e) { if (e.target.tagName === 'VIDEO') setTimeout(checkVideos, 200); }, true);
+            var videoObserver = new MutationObserver(function() {
+              setTimeout(checkVideos, 500);
+            });
+            videoObserver.observe(document.body, { childList: true, subtree: true });
           })();
         `)}
         onMessage={(event) => {
@@ -596,6 +735,10 @@ const WebViewScreen = ({ route, navigation }) => {
             const msg = JSON.parse(event.nativeEvent.data);
             if (msg.type === 'scroll' && msg.url) {
               scrollPositions.current[msg.url] = msg.y;
+              return;
+            }
+            if (msg.type === 'video_state') {
+              setHasVideo(msg.hasVideo);
               return;
             }
           } catch(e) {}
@@ -645,9 +788,13 @@ const WebViewScreen = ({ route, navigation }) => {
         }}
         injectedJavaScript={!isReelBrowser ? `
           (function() {
-            function isLightPaperPdf(url) {
+            function isPdfUrl(url) {
               var u = url.toLowerCase();
-              return u.indexOf('thelightpaper.co.uk') !== -1 && u.indexOf('.pdf') !== -1;
+              if (u.indexOf('docs.google.com/gview') !== -1) return false;
+              var pdfIdx = u.indexOf('.pdf');
+              if (pdfIdx === -1) return false;
+              var afterPdf = u.substring(pdfIdx + 4);
+              return afterPdf === '' || afterPdf[0] === '?' || afterPdf[0] === '#' || afterPdf[0] === '/';
             }
             function isBlockedAd(url) {
               return url && url.toLowerCase().indexOf('decafeligiblyhad.com') !== -1;
@@ -663,7 +810,7 @@ const WebViewScreen = ({ route, navigation }) => {
                   e.stopPropagation();
                   return false;
                 }
-                if (isLightPaperPdf(a.href)) {
+                if (isPdfUrl(a.href)) {
                   e.preventDefault();
                   e.stopPropagation();
                   openPdfInViewer(a.href);
@@ -675,7 +822,7 @@ const WebViewScreen = ({ route, navigation }) => {
             window.open = function(url, target, features) {
               if (!url) return origOpen ? origOpen.apply(this, arguments) : null;
               if (isBlockedAd(url)) return null;
-              if (isLightPaperPdf(url)) {
+              if (isPdfUrl(url)) {
                 openPdfInViewer(url);
                 return null;
               }
@@ -716,7 +863,7 @@ const WebViewScreen = ({ route, navigation }) => {
       )}
 
       {/* Floating header overlay - WebView loads from top of screen */}
-      {!gameMode && (
+      {!gameMode && !isPiPMode && (
       <View style={styles.headerOverlay}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={28} color={theme.primaryColor} />
@@ -733,6 +880,49 @@ const WebViewScreen = ({ route, navigation }) => {
           </View>
         )}
         {!isReelBrowser && !isLocalContent && (
+          <TouchableOpacity
+            disabled={!hasVideo}
+            onPress={() => {
+              if (PiPModule && PiPModule.enterPiP) {
+                isPiPTransitioning.current = true;
+                setIsPiPMode(true);
+                if (webViewRef.current) {
+                  webViewRef.current.injectJavaScript(`
+                    (function() {
+                      var v = document.querySelector('video');
+                      if (v) {
+                        document.body.style.margin = '0';
+                        document.body.style.padding = '0';
+                        document.body.style.overflow = 'hidden';
+                        document.body.style.backgroundColor = '#000';
+                        var allElems = document.body.querySelectorAll('*');
+                        for (var i = 0; i < allElems.length; i++) {
+                          var el = allElems[i];
+                          if (el === v || v.contains(el)) continue;
+                          if (el.contains(v)) continue;
+                          el.style.display = 'none';
+                        }
+                        v.style.position = 'fixed';
+                        v.style.top = '0';
+                        v.style.left = '0';
+                        v.style.width = '100%';
+                        v.style.height = '100%';
+                        v.style.zIndex = '9999';
+                        v.style.objectFit = 'contain';
+                        v.play().catch(function() {});
+                      }
+                    })();
+                  `);
+                }
+                PiPModule.enterPiP();
+              }
+            }}
+            style={{ marginLeft: 8, marginRight: 6, opacity: hasVideo ? 1 : 0.3 }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '700', color: hasVideo ? theme.primaryColor : theme.textSecondaryColor, borderWidth: 1, borderColor: (hasVideo ? theme.primaryColor : theme.textSecondaryColor) + '66', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 3 }}>PiP</Text>
+          </TouchableOpacity>
+        )}
+        {!isReelBrowser && !isLocalContent && (
           <TouchableOpacity onPress={handleCopyUrl} style={styles.copyButton}>
             <Icon name="copy" size={24} color={theme.primaryColor} />
           </TouchableOpacity>
@@ -746,21 +936,27 @@ const WebViewScreen = ({ route, navigation }) => {
             setKeepCookies(newVal);
             keepCookiesRef.current = newVal;
             AsyncStorage.setItem('@keep_cookies', newVal ? 'true' : 'false');
-            if (Platform.OS === 'android') {
-              ToastAndroid.show(newVal ? 'Cookies will be kept' : 'Incognito: cookies cleared on exit', ToastAndroid.SHORT);
-            }
+            showToast(newVal ? 'Cookie persistence ON' : 'Incognito — cookies cleared on exit');
           }} style={{ marginLeft: 10 }}>
-            <Icon name="incognito" size={24} color={keepCookies ? theme.textSecondaryColor : theme.primaryColor} />
+            <View style={{ position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+              <Icon name="cookie" size={24} color={keepCookies ? theme.textSecondaryColor : theme.primaryColor} />
+              {!keepCookies && (
+                <View style={styles.cookieBlockedOverlay} pointerEvents="none">
+                  <View style={styles.cookieBlockedCircle} />
+                  <View style={styles.cookieBlockedLine} />
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         )}
       </View>
       )}
-      {loadProgress > 0 && loadProgress < 1 && !currentUrl.includes('cloudflare.com') && (
+      {loadProgress > 0 && loadProgress < 1 && !currentUrl.includes('cloudflare.com') && !isPiPMode && (
         <View style={styles.loaderOverlay} pointerEvents="none">
           <FunkyLoader color={theme.primaryColor} size={64} />
         </View>
       )}
-      {loadProgress > 0 && loadProgress < 1 && (
+      {loadProgress > 0 && loadProgress < 1 && !isPiPMode && (
         <View style={styles.progressBarContainer} pointerEvents="none">
           <View style={[styles.progressBar, { width: `${loadProgress * 100}%`, backgroundColor: theme.primaryColor }]} />
           <View style={[styles.progressBarGlow, { width: `${loadProgress * 100}%`, shadowColor: theme.primaryColor }]} />
@@ -909,6 +1105,30 @@ const styles = StyleSheet.create({
     color: '#ffcc99',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  cookieBlockedOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cookieBlockedCircle: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2.5,
+    borderColor: '#ff3333',
+  },
+  cookieBlockedLine: {
+    position: 'absolute',
+    width: 34,
+    height: 2.5,
+    backgroundColor: '#ff3333',
+    transform: [{ rotate: '45deg' }],
   },
 });
 
