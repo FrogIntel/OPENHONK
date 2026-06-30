@@ -28,6 +28,7 @@
     <link rel="canonical" href="/">
   <meta data-intl-tel-input-cdn-path="intlTelInput/">
   <style>
+    body.modal-dismissed #sec-1538 { display: none !important; }
     @keyframes ohk-pulse {
       0%, 100% { text-shadow: 0 0 16px rgba(255, 204, 51, 0.8), 0 0 32px rgba(255, 204, 51, 0.4), 0 0 48px rgba(255, 204, 51, 0.2), 0 0 4px rgba(255, 204, 51, 1); }
       50% { text-shadow: 0 0 32px rgba(255, 204, 51, 1), 0 0 64px rgba(255, 204, 51, 0.7), 0 0 96px rgba(255, 204, 51, 0.4), 0 0 6px rgba(255, 204, 51, 1); }
@@ -37,7 +38,7 @@
     }
   </style>
   </head>
-  <body data-home-page="https://327329732794.nicepage.io/Home.html?version=5e79c977-1035-4c37-12eb-4c8699ca8554" data-home-page-title="Home" data-path-to-root="./" data-include-products="false" class="u-body u-clearfix u-white u-xl-mode" data-lang="en"><header class="u-box-shadow u-clearfix u-header u-image u-shading u-header" id="sec-20b9" data-image-width="1000" data-image-height="750"><img class="u-dialog-link u-image u-image-contain u-image-default u-preserve-proportions u-image-1" alt="" data-image-width="883" data-image-height="906" src="logo.png" data-animation-out="0" data-href="#sec-1538"><img class="u-dialog-link u-image u-image-contain u-image-default u-opacity u-opacity-20 u-preserve-proportions u-image-2" src="images/sticker_5045-512x512.png" alt="" data-image-width="512" data-image-height="512" data-href="#sec-1538"><div data-interval="3000" data-u-ride="carousel" class="u-carousel u-carousel-fade u-expanded-width u-slider u-slider-1" id="carousel-6e0e" data-pause="false">
+  <body data-home-page="index.html" data-home-page-title="Home" data-path-to-root="./" data-include-products="false" class="u-body u-clearfix u-white u-xl-mode" data-lang="en"><header class="u-box-shadow u-clearfix u-header u-image u-shading u-header" id="sec-20b9" data-image-width="1000" data-image-height="750"><img class="u-dialog-link u-image u-image-contain u-image-default u-preserve-proportions u-image-1" alt="" data-image-width="883" data-image-height="906" src="logo.png" data-animation-out="0" data-href="#sec-1538"><img class="u-dialog-link u-image u-image-contain u-image-default u-opacity u-opacity-20 u-preserve-proportions u-image-2" src="images/sticker_5045-512x512.png" alt="" data-image-width="512" data-image-height="512" data-href="#sec-1538"><div data-interval="3000" data-u-ride="carousel" class="u-carousel u-carousel-fade u-expanded-width u-slider u-slider-1" id="carousel-6e0e" data-pause="false">
         <ol class="u-absolute-hcenter u-carousel-indicators u-hidden u-carousel-indicators-1">
           <li data-u-target="#carousel-6e0e" class="u-active u-active-grey-10 u-grey-30" data-u-slide-to="0"></li>
           <li data-u-target="#carousel-6e0e" class="u-active-grey-10 u-grey-30" data-u-slide-to="1"></li>
@@ -304,10 +305,9 @@
       </div>
     </section><style>.u-dialog-section-9 .u-dialog-1 {
   width: 346px;
-  min-height: 494px;
   height: auto;
   box-shadow: 5px 5px 20px 0 rgba(0,0,0,0.4);
-  margin: 110px auto 58px;
+  margin: 60px auto 20px;
 }
 
 .u-dialog-section-9 .u-container-layout-1 {
@@ -368,9 +368,6 @@
 }
 
 @media (max-width: 767px) {
-  .u-dialog-section-9 .u-dialog-1 {
-    min-height: 484px;
-  }
 
   .u-dialog-section-9 .u-container-layout-1 {
     padding-left: 30px;
@@ -396,9 +393,8 @@
 @media (max-width: 575px) {
   .u-dialog-section-9 .u-dialog-1 {
     width: 340px;
-    min-height: 453px;
-    margin-top: 137px;
-    margin-bottom: 60px;
+    margin-top: 60px;
+    margin-bottom: 20px;
   }
 
   .u-dialog-section-9 .u-container-layout-1 {
@@ -423,53 +419,59 @@
 <script>
 (function() {
   var modal = document.getElementById('sec-1538');
-  if (modal) {
-    if (localStorage.getItem('openhonk_modal_shown') === '1') {
-      modal.removeAttribute('data-dialog-show-on');
-      modal.removeAttribute('data-dialog-show-interval');
-    } else {
-      var observer = new MutationObserver(function() {
-        if (modal.style.display !== 'none' && modal.classList.contains('u-dialog-open')) {
-          localStorage.setItem('openhonk_modal_shown', '1');
-        }
-      });
-      observer.observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
-      var closeBtn = modal.querySelector('.u-dialog-close-button');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-          localStorage.setItem('openhonk_modal_shown', '1');
-        });
-      }
-    }
-  }
-})();
-</script>
-<script>
-(function() {
+  if (!modal) return;
+  var html = document.documentElement;
+  var closeBtn = modal.querySelector('.u-dialog-close-button');
+
   function openModal() {
-    var m = document.getElementById('sec-1538');
-    if (m) {
-      m.style.display = 'flex';
-      m.style.opacity = '1';
-      m.style.pointerEvents = 'auto';
-      m.classList.add('u-dialog-open');
-      var c = m.querySelector('.u-dialog-close-button');
-      if (c) {
-        c.onclick = function() {
-          m.style.display = 'none';
-          m.classList.remove('u-dialog-open');
-        };
-      }
-    }
+    document.body.classList.remove('modal-dismissed');
+    modal.classList.add('u-dialog-open');
+    html.classList.add('u-dialog-open-scroll');
   }
+  function closeModal() {
+    modal.classList.remove('u-dialog-open');
+    html.classList.remove('u-dialog-open-scroll');
+    localStorage.setItem('openhonk_modal_shown', '1');
+    document.body.classList.add('modal-dismissed');
+    modal.removeAttribute('data-dialog-show-on');
+    modal.removeAttribute('data-dialog-show-interval');
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); closeModal(); });
+  }
+
+  if (localStorage.getItem('openhonk_modal_shown') === '1') {
+    document.body.classList.add('modal-dismissed');
+    modal.removeAttribute('data-dialog-show-on');
+    modal.removeAttribute('data-dialog-show-interval');
+  } else {
+    var observer = new MutationObserver(function() {
+      if (modal.classList.contains('u-dialog-open')) {
+        localStorage.setItem('openhonk_modal_shown', '1');
+        observer.disconnect();
+      }
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+    setTimeout(function() {
+      if (localStorage.getItem('openhonk_modal_shown') !== '1' && !modal.classList.contains('u-dialog-open')) {
+        openModal();
+      }
+    }, 3500);
+  }
+
   function attachClick() {
     var img = document.getElementById('dontPanicImg');
     if (img) {
-      img.addEventListener('click', openModal);
-      img.addEventListener('touchend', function(e) {
-        e.preventDefault();
-        openModal();
-      });
+      img.addEventListener('click', function(e) { e.preventDefault(); openModal(); });
+      img.addEventListener('touchend', function(e) { e.preventDefault(); openModal(); });
+    }
+    var links = document.querySelectorAll('[data-href="#sec-1538"], a[href="#sec-1538"]');
+    for (var i = 0; i < links.length; i++) {
+      (function(el) {
+        el.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); openModal(); });
+        el.addEventListener('touchend', function(e) { e.preventDefault(); e.stopPropagation(); openModal(); });
+      })(links[i]);
     }
   }
   if (document.readyState === 'loading') {

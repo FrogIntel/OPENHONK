@@ -66,4 +66,33 @@ class CookiePersistModule(reactContext: ReactApplicationContext) :
             promise.resolve(false)
         }
     }
+
+    @ReactMethod
+    fun clearForDomain(url: String, promise: Promise) {
+        try {
+            val cookieManager = CookieManager.getInstance()
+            val cookies = cookieManager.getCookie(url)
+            if (cookies != null && cookies.isNotEmpty()) {
+                val parts = cookies.split("; ")
+                for (part in parts) {
+                    val eqIdx = part.indexOf("=")
+                    if (eqIdx > 0) {
+                        val name = part.substring(0, eqIdx).trim()
+                        val domain = try { java.net.URI(url).host } catch(e: Exception) { null }
+                        val cookieVal = "$name=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"
+                        if (domain != null) {
+                            cookieManager.setCookie("https://$domain", cookieVal)
+                            cookieManager.setCookie("http://$domain", cookieVal)
+                        }
+                        cookieManager.setCookie(url, cookieVal)
+                    }
+                }
+                cookieManager.flush()
+            }
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e("CookiePersistModule", "clearForDomain failed", e)
+            promise.resolve(false)
+        }
+    }
 }

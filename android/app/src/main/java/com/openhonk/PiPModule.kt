@@ -30,12 +30,19 @@ class PiPModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun enterPiP() {
+        enterPiPWithRatio(16, 9)
+    }
+
+    @ReactMethod
+    fun enterPiPWithRatio(width: Int, height: Int) {
         val activity = reactApplicationContext.currentActivity ?: return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         activity.runOnUiThread {
             try {
+                val w = if (width > 0) width else 16
+                val h = if (height > 0) height else 9
                 val params = PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(16, 9))
+                    .setAspectRatio(Rational(w, h))
                     .build()
                 activity.enterPictureInPictureMode(params)
             } catch (e: Exception) {

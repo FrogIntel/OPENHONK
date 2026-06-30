@@ -30,6 +30,8 @@ const ScreenshotImage = memo(({ url, style, resizeMode = 'cover', crossfade = fa
   const cached = getCachedSource(url);
   const source = cached.source;
   const isFallback = cached.type === 'fallback';
+  const isFavicon = cached.type === 'favicon';
+  const bgColor = isFallback ? '#f7bf1e' : (isFavicon ? '#0d0d0d' : (loaded ? '#0d0d0d' : '#f7bf1e'));
 
   const fadeIn = () => {
     Animated.timing(fadeAnim, {
@@ -73,7 +75,7 @@ const ScreenshotImage = memo(({ url, style, resizeMode = 'cover', crossfade = fa
   };
 
   return (
-    <View style={[style, { overflow: 'hidden', backgroundColor: isFallback ? '#f7bf1e' : '#0d0d0d' }]}>
+    <View style={[style, { overflow: 'hidden', backgroundColor: bgColor }]}>
       {/* Fallback icon underneath — hidden once image loads */}
       {!isFallback && !loaded && (
         <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f7bf1e' }]}>
@@ -121,6 +123,8 @@ const AnimatedScreenshotImage = forwardRef(({ url, style, resizeMode = 'cover', 
   const cached = getCachedSource(url);
   const source = cached.source;
   const isFallback = cached.type === 'fallback';
+  const isFavicon = cached.type === 'favicon';
+  const bgColor = isFallback ? '#f7bf1e' : (isFavicon ? '#0d0d0d' : (loaded ? '#0d0d0d' : '#f7bf1e'));
 
   const handleLoad = (e) => {
     loadedRef.current = true;
@@ -165,7 +169,7 @@ const AnimatedScreenshotImage = forwardRef(({ url, style, resizeMode = 'cover', 
   };
 
   return (
-    <Animated.View style={[style, { overflow: 'hidden', backgroundColor: isFallback ? '#f7bf1e' : '#0d0d0d' }]}>
+    <Animated.View style={[style, { overflow: 'hidden', backgroundColor: bgColor }]}>
       <Animated.View style={[styles.imageWrapper, { opacity: fadeAnim }, isFallback && styles.centeredImage]}>
         <Animated.Image
           ref={ref}

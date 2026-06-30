@@ -343,7 +343,8 @@ const CategoryScreen = ({ route, navigation }) => {
             const isNewContent = item.url && item.url.startsWith('openhonk://');
             const handleNotifPress = () => {
               if (isNewContent) {
-                navigation.navigate('NewContent');
+                const version = item.id && item.id.includes('v1014') ? 'v1.0.14' : 'old';
+                navigation.navigate('NewContent', { version });
               } else {
                 openUrl(item.url, item.title);
               }

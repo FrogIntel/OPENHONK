@@ -10,7 +10,7 @@ import SideMenu from '../components/SideMenu';
 import NotificationIcon from '../components/NotificationIcon';
 import { appData } from '../data/urls';
 
-const NewContentScreen = ({ navigation }) => {
+const NewContentScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
@@ -19,6 +19,11 @@ const NewContentScreen = ({ navigation }) => {
   const tilePadding = 10;
   const tileWidth = (width - tilePadding * (numColumns + 1)) / numColumns;
   const [menuVisible, setMenuVisible] = useState(false);
+  const version = route?.params?.version || 'v1.0.14';
+
+  const filteredContent = version === 'old'
+    ? newContent.filter(item => !item.version)
+    : newContent.filter(item => item.version === version);
 
   const openUrl = (url, title) => {
     markNewContentSeen(url);
@@ -50,13 +55,13 @@ const NewContentScreen = ({ navigation }) => {
           key={`new-content-grid-${numColumns}`}
           style={styles.content}
           contentContainerStyle={{ paddingTop: 60, paddingBottom: insets.bottom + 20, paddingHorizontal: tilePadding, alignItems: 'center' }}
-          data={newContent.filter(item => item.version === 'v1.0.14')}
+          data={filteredContent}
           numColumns={numColumns}
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={
             <View style={styles.headerSection}>
               <Text style={[styles.headerText, { color: theme.primaryColor }]}>New Content Added</Text>
-              <Text style={[styles.subHeaderText, { color: theme.textSecondaryColor }]}>{newContent.filter(item => item.version === 'v1.0.14').length} new entries added in v1.0.14</Text>
+              <Text style={[styles.subHeaderText, { color: theme.textSecondaryColor }]}>{filteredContent.length} new entries added in {version === 'old' ? 'v1.0.5' : version}</Text>
               <TouchableOpacity style={[styles.markAllBtn, { borderColor: theme.primaryColor + '66' }]} onPress={handleMarkAll}>
                 <Text style={[styles.markAllText, { color: theme.primaryColor }]}>Mark All as Seen</Text>
               </TouchableOpacity>

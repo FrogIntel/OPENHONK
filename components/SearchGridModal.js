@@ -43,7 +43,8 @@ const SearchGridModal = ({ visible, onClose, onOpenUrl, primaryColor = '#ffcc33'
   const handleOpen = (item) => {
     handleClose();
     if (item.url && item.url.startsWith('openhonk://')) {
-      navigation.navigate('NewContent');
+      const version = item.id && item.id.includes('v1014') ? 'v1.0.14' : 'old';
+      navigation.navigate('NewContent', { version });
       return;
     }
     onOpenUrl(item.url, item.title);
