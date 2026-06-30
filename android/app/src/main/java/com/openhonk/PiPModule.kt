@@ -74,6 +74,22 @@ class PiPModule(reactContext: ReactApplicationContext) :
         reactApplicationContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             .emit("pipModeChanged", isInPiP)
+
+        // Notify BackgroundAudioModule so it doesn't interfere with WebView during PiP transitions
+        BackgroundAudioModule.setInPiP(isInPiP)
+    }
+
+    private fun findWebViews(root: android.view.ViewGroup): List<android.webkit.WebView> {
+        val result = mutableListOf<android.webkit.WebView>()
+        for (i in 0 until root.childCount) {
+            val child = root.getChildAt(i)
+            if (child is android.webkit.WebView) {
+                result.add(child)
+            } else if (child is android.view.ViewGroup) {
+                result.addAll(findWebViews(child))
+            }
+        }
+        return result
     }
 
     private fun emitPipError(message: String) {

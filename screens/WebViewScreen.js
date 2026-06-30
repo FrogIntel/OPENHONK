@@ -13,7 +13,7 @@ import { isAdDomain, getAdBlockJS, fetchAdBlockList } from '../components/adBloc
 import { trackCookieDomain, getCookieDomains } from '../components/cookieManager';
 import { NativeModules, NativeEventEmitter } from 'react-native';
 
-const { PiPModule } = NativeModules;
+const { PiPModule, BackgroundAudioModule } = NativeModules;
 const pipEmitter = PiPModule ? new NativeEventEmitter(PiPModule) : null;
 
 const { CookiePersistModule, OrientationModule } = NativeModules;
@@ -65,6 +65,10 @@ const WebViewScreen = ({ route, navigation }) => {
     const subscription = pipEmitter.addListener('pipModeChanged', (isInPiP) => {
       setIsPiPMode(isInPiP);
       if (isInPiP) {
+        // Disable background audio keep-alive during PiP - it interferes with WebView
+        if (BackgroundAudioModule && BackgroundAudioModule.keepWebViewAliveInBackground) {
+          BackgroundAudioModule.keepWebViewAliveInBackground(false);
+        }
         if (webViewRef.current) {
           webViewRef.current.injectJavaScript(`
           (function() {
@@ -114,7 +118,18 @@ const WebViewScreen = ({ route, navigation }) => {
               }
               return null;
             }
+            function isRumblePlayerVideo(video) {
+              var parent = video && video.parentElement;
+              if (!parent) return false;
+              var rumbleClasses = ['pause_svg', 'play_svg', 'rumble', 'videoPlayer', 'player-controls', 'control-bar'];
+              for (var i = 0; i < rumbleClasses.length; i++) {
+                if (parent.className.indexOf(rumbleClasses[i]) !== -1) return true;
+                if (parent.querySelector('[class*="' + rumbleClasses[i] + '"]')) return true;
+              }
+              return false;
+            }
             function applyPip() {
+              if (!window.__openhonk_in_pip) return;
               var target = findPipTarget();
               if (!target) {
                 var videos = document.querySelectorAll('video');
@@ -123,14 +138,18 @@ const WebViewScreen = ({ route, navigation }) => {
                 }
               }
               if (target) {
+                var isRumbleVideo = target.tagName === 'VIDEO' && isRumblePlayerVideo(target);
                 var allElems = document.body.querySelectorAll('*');
                 for (var i = 0; i < allElems.length; i++) {
                   var el = allElems[i];
                   if (el === target || target.contains(el) || el.contains(target)) continue;
+                  if (isRumbleVideo && isRumblePlayerVideo(el)) continue;
                   if (el.id === 'pip-style') continue;
                   el.classList.add('pip-hide');
                 }
-                target.classList.add('pip-show');
+                if (!isRumbleVideo) {
+                  target.classList.add('pip-show');
+                }
                 if (target.tagName === 'VIDEO') target.play().catch(function() {});
                 if (target.tagName === 'IFRAME') {
                   try {
@@ -148,6 +167,7 @@ const WebViewScreen = ({ route, navigation }) => {
                 }
               }
             }
+            window.__openhonk_in_pip = true;
             applyPip();
             window.__pipScrollY = window.scrollY;
             window.__pipApplyFn = applyPip;
@@ -157,9 +177,14 @@ const WebViewScreen = ({ route, navigation }) => {
         }
       } else if (!isInPiP) {
         isPiPTransitioning.current = false;
+        // Re-enable background audio keep-alive after PiP exit
+        if (BackgroundAudioModule && BackgroundAudioModule.keepWebViewAliveInBackground) {
+          BackgroundAudioModule.keepWebViewAliveInBackground(true);
+        }
         if (webViewRef.current) {
         webViewRef.current.injectJavaScript(`
           (function() {
+            window.__openhonk_in_pip = false;
             var style = document.getElementById('pip-style');
             if (style) style.remove();
             var hidden = document.querySelectorAll('.pip-hide');
@@ -173,6 +198,21 @@ const WebViewScreen = ({ route, navigation }) => {
                 window.scrollTo(0, scrollY);
                 setTimeout(function() { window.scrollTo(0, scrollY); }, 200);
               });
+            }
+            // Remove pip-iframe-style from ALL iframes to restore touch events
+            var iframes = document.querySelectorAll('iframe');
+            for (var i = 0; i < iframes.length; i++) {
+              try {
+                var iframeDoc = iframes[i].contentDocument || iframes[i].contentWindow.document;
+                if (iframeDoc) {
+                  var pipStyle = iframeDoc.getElementById('pip-iframe-style');
+                  if (pipStyle) pipStyle.remove();
+                  var elems = iframeDoc.querySelectorAll('[style*="overflow"]');
+                  for (var j = 0; j < elems.length; j++) {
+                    elems[j].style.overflow = '';
+                  }
+                }
+              } catch(e) {}
             }
           })();
         `);
@@ -457,7 +497,7 @@ const WebViewScreen = ({ route, navigation }) => {
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
         allowsBackForwardNavigationGestures={!currentUrl?.includes('itch.io')}
-        setSupportMultipleWindows={isReelBrowser && !currentUrl?.includes('itch.io')}
+        setSupportMultipleWindows={false}
         geolocationEnabled={false}
         saveFormDataDisabled={true}
         userAgent="Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
@@ -1055,44 +1095,60 @@ const WebViewScreen = ({ route, navigation }) => {
         injectedJavaScript={!isReelBrowser ? `
           (function() {
             // === Background media keep-alive ===
-            // Prevent the page from knowing it's in the background
-            try {
-              Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
-              Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
-              Object.defineProperty(document, 'webkitHidden', { get: function() { return false; }, configurable: true });
-              Object.defineProperty(document, 'webkitVisibilityState', { get: function() { return 'visible'; }, configurable: true });
-            } catch(e) {}
-            // Block visibilitychange and pagehide events from reaching the page
-            ['visibilitychange', 'webkitvisibilitychange', 'pagehide', 'freeze', 'resume'].forEach(function(ev) {
-              document.addEventListener(ev, function(e) { e.stopImmediatePropagation(); }, true);
-              window.addEventListener(ev, function(e) { e.stopImmediatePropagation(); }, true);
-            });
-            // Auto-resume any media that gets paused while in background
-            document.addEventListener('pause', function(e) {
-              if (e.target && (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO')) {
-                var m = e.target;
-                if (m.readyState >= 2 && !m.ended && !m.__openhonk_user_paused) {
-                  setTimeout(function() { m.play().catch(function() {}); }, 100);
+            // Only override visibility when app is backgrounded, restore when foreground
+            window.__openhonk_backgrounded = false;
+            var __origDescriptors = null;
+            window.__openhonk_updateVisibility = function(bg) {
+              try {
+                if (bg && !__origDescriptors) {
+                  // Save originals and override
+                  __origDescriptors = {};
+                  ['hidden', 'visibilityState', 'webkitHidden', 'webkitVisibilityState'].forEach(function(prop) {
+                    __origDescriptors[prop] = Object.getOwnPropertyDescriptor(document, prop);
+                  });
+                  Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
+                  Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
+                  Object.defineProperty(document, 'webkitHidden', { get: function() { return false; }, configurable: true });
+                  Object.defineProperty(document, 'webkitVisibilityState', { get: function() { return 'visible'; }, configurable: true });
+                } else if (!bg && __origDescriptors) {
+                  // Restore originals
+                  ['hidden', 'visibilityState', 'webkitHidden', 'webkitVisibilityState'].forEach(function(prop) {
+                    if (__origDescriptors[prop]) {
+                      Object.defineProperty(document, prop, __origDescriptors[prop]);
+                    }
+                  });
+                  __origDescriptors = null;
                 }
-              }
-            }, true);
-            // Track user-initiated pauses
+              } catch(e) {}
+            };
+            // Block visibilitychange and pagehide events from reaching the page
+            // Only block when app is going to background (flag set by native side), let PiP return events through
+            ['visibilitychange', 'webkitvisibilitychange', 'pagehide', 'freeze', 'resume'].forEach(function(ev) {
+              document.addEventListener(ev, function(e) {
+                if (window.__openhonk_backgrounded) {
+                  e.stopImmediatePropagation();
+                }
+              }, true);
+              window.addEventListener(ev, function(e) {
+                if (window.__openhonk_backgrounded) {
+                  e.stopImmediatePropagation();
+                }
+              }, true);
+            });
+            // Track user-initiated pauses - any direct interaction with video marks it as user-paused
             document.addEventListener('click', function(e) {
-              var v = e.target.closest('video, button[aria-label*="pause"], button[aria-label*="Play"], .vjs-play-button, .ytp-play-button, .play-button, .pause-button');
+              var v = e.target.closest('video, audio');
               if (v) {
+                setTimeout(function() { v.__openhonk_user_paused = v.paused; }, 50);
+              }
+              // Also check common player control buttons
+              var ctrl = e.target.closest('button, [role="button"], .vjs-play-button, .ytp-play-button, .play-button, .pause-button, .vjs-big-play-button');
+              if (ctrl) {
                 document.querySelectorAll('video, audio').forEach(function(m) {
-                  m.__openhonk_user_paused = m.paused;
+                  setTimeout(function() { m.__openhonk_user_paused = m.paused; }, 50);
                 });
               }
             }, true);
-            // Periodic media resume check
-            setInterval(function() {
-              document.querySelectorAll('video, audio').forEach(function(m) {
-                if (m.readyState >= 2 && m.paused && !m.ended && !m.__openhonk_user_paused) {
-                  m.play().catch(function() {});
-                }
-              });
-            }, 2000);
 
             function isPdfUrl(url) {
               var u = url.toLowerCase();
@@ -1174,7 +1230,7 @@ const WebViewScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={28} color={theme.primaryColor} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.primaryColor }]}>{title}</Text>
+        <Text style={[styles.headerTitle, { color: theme.primaryColor }]} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
         {!isReelBrowser && !isLocalContent && (
           <View style={[styles.protocolBadge, { backgroundColor: isInsecure ? 'rgba(204,0,0,0.8)' : 'rgba(0,153,51,0.8)' }]}>
             <Text style={styles.protocolText}>{isInsecure ? 'HTTP' : 'HTTPS'}</Text>
@@ -1200,7 +1256,7 @@ const WebViewScreen = ({ route, navigation }) => {
                       if (existing) existing.remove();
                       var style = document.createElement('style');
                       style.id = 'pip-style';
-                      style.textContent = 'html,body{margin:0!important;padding:0!important;overflow:hidden!important;background:#000!important;width:100%!important;height:100%!important}.pip-hide{display:none!important}.pip-show{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:999999!important;background:#000!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;outline:none!important}.pip-show video{width:100%!important;height:100%!important;object-fit:contain!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;outline:none!important}.pip-show iframe{width:100%!important;height:100%!important;border:none!important;margin:0!important;padding:0!important;box-shadow:none!important;outline:none!important}';
+                      style.textContent = 'html,body{margin:0!important;padding:0!important;overflow:hidden!important;background:#000!important;width:100%!important;height:100%!important}.pip-hide{display:none!important}.pip-show{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:999999!important;background:#000!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;outline:none!important}.pip-show video{width:100%!important;height:100%!important;object-fit:contain!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;outline:none!important}.pip-show iframe{width:100%!important;height:100%!important;border:none!important;margin:0!important;padding:0!important;box-shadow:none!important;outline:none!important}.pip-show [id^="rumble_"]{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:999999!important;background:#000!important;margin:0!important;padding:0!important;border:none!important}';
                       document.head.appendChild(style);
                       function isVideoEmbedIframe(iframe) {
                         var src = (iframe.src || '').toLowerCase();
@@ -1273,6 +1329,13 @@ const WebViewScreen = ({ route, navigation }) => {
                           }
                         }
                         if (target) {
+                          var isRumbleIframe = false;
+                          if (target.tagName === 'IFRAME') {
+                            var src = (target.src || '').toLowerCase();
+                            if (src.indexOf('rumble.com') !== -1 || src.indexOf('rumbleplayer.com') !== -1) {
+                              isRumbleIframe = true;
+                            }
+                          }
                           var allElems = document.body.querySelectorAll('*');
                           for (var i = 0; i < allElems.length; i++) {
                             var el = allElems[i];
@@ -1280,7 +1343,9 @@ const WebViewScreen = ({ route, navigation }) => {
                             if (el.id === 'pip-style') continue;
                             el.classList.add('pip-hide');
                           }
-                          target.classList.add('pip-show');
+                          if (!isRumbleIframe) {
+                            target.classList.add('pip-show');
+                          }
                           if (target.tagName === 'VIDEO') target.play().catch(function() {});
                           if (target.tagName === 'IFRAME') {
                             try {
@@ -1413,6 +1478,7 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
     letterSpacing: 1,
     textAlign: 'left',
+    flex: 1,
   },
   protocolBadge: {
     paddingHorizontal: 6,

@@ -31,6 +31,7 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     private var isServiceRunning = false
     private var keepWebViewAlive = false
+    private var isInPiP = false
     private var overlayView: View? = null
     private val handler = Handler(Looper.getMainLooper())
     private val resumeRunnable = object : Runnable {
@@ -44,6 +45,46 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     init {
         reactContext.addLifecycleEventListener(this)
+        instance = this
+    }
+
+    companion object {
+        @Volatile
+        private var instance: BackgroundAudioModule? = null
+
+        @JvmStatic
+        fun getInstance(): BackgroundAudioModule? = instance
+
+        @JvmStatic
+        fun showOverlayWindowStatic() {
+            instance?.showOverlayWindow()
+        }
+
+        @JvmStatic
+        fun removeOverlayWindowStatic() {
+            instance?.removeOverlayWindow()
+        }
+
+        @JvmStatic
+        fun setInPiP(inPiP: Boolean) {
+            instance?.onPiPChanged(inPiP)
+        }
+    }
+
+    private fun onPiPChanged(inPiP: Boolean) {
+        isInPiP = inPiP
+        if (inPiP) {
+            // Remove overlay and stop resume loop while in PiP - the activity is still alive
+            handler.removeCallbacks(resumeRunnable)
+            removeOverlayWindow()
+        } else {
+            // Exiting PiP - ensure WebView is fully resumed
+            handler.removeCallbacks(resumeRunnable)
+            if (keepWebViewAlive) {
+                resumeAllWebViews()
+                handler.postDelayed(resumeRunnable, 2000)
+            }
+        }
     }
 
     override fun getName(): String = "BackgroundAudioModule"
@@ -215,7 +256,8 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
     }
 
     override fun onHostPause() {
-        if (keepWebViewAlive) {
+        if (keepWebViewAlive && !isInPiP) {
+            setBgFlag(true)
             showOverlayWindow()
             resumeAllWebViews()
             handler.postDelayed(resumeRunnable, 2000)
@@ -224,6 +266,7 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
 
     override fun onHostResume() {
         handler.removeCallbacks(resumeRunnable)
+        setBgFlag(false)
         removeOverlayWindow()
         resumeAllWebViews()
     }
@@ -233,6 +276,21 @@ class BackgroundAudioModule(reactContext: ReactApplicationContext) : ReactContex
         removeOverlayWindow()
         if (isServiceRunning) {
             stopBackgroundAudio()
+        }
+    }
+
+    private fun setBgFlag(backgrounded: Boolean) {
+        val activity = getCurrentActivity() ?: return
+        val rootView = activity.window?.decorView?.findViewById<ViewGroup>(android.R.id.content) ?: return
+        findWebViews(rootView).forEach { webView ->
+            try {
+                webView.evaluateJavascript(
+                    "window.__openhonk_backgrounded = $backgrounded; if(window.__openhonk_updateVisibility){window.__openhonk_updateVisibility($backgrounded);}",
+                    null
+                )
+            } catch (e: Exception) {
+                Log.e("BackgroundAudioModule", "Failed to set bg flag", e)
+            }
         }
     }
 
