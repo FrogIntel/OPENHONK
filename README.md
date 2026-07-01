@@ -98,7 +98,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 ---
 
-## �📱 Categories
+## 📱 Categories
 
 | Tab | Content |
 |-----|---------|
