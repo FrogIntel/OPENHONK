@@ -6,7 +6,7 @@
 
 <img src="assets/logo.png" width="120" alt="OPENHONK Logo" />
 
-<a href="https://github.com/FrogIntel/OPENHONK/releases/latest" style="background:linear-gradient(135deg,#ffcc33,#ff9900);color:#000;font-family:'Segoe UI',sans-serif;font-size:20px;font-weight:800;padding:14px 40px;border-radius:12px;text-decoration:none;display:inline-block;box-shadow:0 4px 15px rgba(255,204,51,0.4);letter-spacing:1px">🐸 DOWNLOAD LATEST</a>
+<a href="https://github.com/FrogIntel/OPENHONK/releases/latest"><img src="assets/download-button.svg" width="220" alt="Download Latest" /></a>
 
 </div>
 
@@ -28,7 +28,7 @@ Tired of Big Tech feeding you sanitized bullshit? **OPENHONK** is your Open Sour
 
 ## 📥 Download Now!
 
-<a href="https://github.com/FrogIntel/OPENHONK/releases/latest" style="background:linear-gradient(135deg,#ffcc33,#ff9900);color:#000;font-family:'Segoe UI',sans-serif;font-size:20px;font-weight:800;padding:14px 40px;border-radius:12px;text-decoration:none;display:inline-block;box-shadow:0 4px 15px rgba(255,204,51,0.4);letter-spacing:1px">🐸 DOWNLOAD LATEST</a>
+<a href="https://github.com/FrogIntel/OPENHONK/releases/latest"><img src="assets/download-button.svg" width="220" alt="Download Latest" /></a>
 
 > 🔶 Run through [VirusTotal](https://www.virustotal.com/) if unsure.
 
