@@ -54,7 +54,7 @@ const NotificationIcon = ({ onPress, primaryColor = '#ffcc33', size = 36 }) => {
         const staticNotifs = (appData.notifications?.urls || []).filter(n => !dismissed.includes(n.id));
         for (const n of staticNotifs) {
           if (!n.id) { count++; continue; }
-          if (!viewed[n.id] || (n.date && new Date(viewed[n.id]) < new Date(n.date))) {
+          if (!viewed[n.id]) {
             count++;
           }
         }

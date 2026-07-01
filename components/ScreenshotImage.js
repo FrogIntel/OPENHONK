@@ -124,7 +124,7 @@ const AnimatedScreenshotImage = forwardRef(({ url, style, resizeMode = 'cover', 
   const source = cached.source;
   const isFallback = cached.type === 'fallback';
   const isFavicon = cached.type === 'favicon';
-  const bgColor = isFallback ? '#f7bf1e' : (isFavicon ? '#0d0d0d' : (loaded ? '#0d0d0d' : '#f7bf1e'));
+  const bgColor = '#0d0d0d';
 
   const handleLoad = (e) => {
     loadedRef.current = true;

@@ -152,6 +152,19 @@ const WebViewScreen = ({ route, navigation }) => {
                 }
                 if (target.tagName === 'VIDEO') target.play().catch(function() {});
                 if (target.tagName === 'IFRAME') {
+                  target.setAttribute('width', '100%');
+                  target.setAttribute('height', '100%');
+                  target.style.setProperty('width', '100%', 'important');
+                  target.style.setProperty('height', '100%', 'important');
+                  target.style.setProperty('position', 'fixed', 'important');
+                  target.style.setProperty('top', '0', 'important');
+                  target.style.setProperty('left', '0', 'important');
+                  target.style.setProperty('z-index', '999999', 'important');
+                  target.style.setProperty('background', '#000', 'important');
+                  target.style.setProperty('border', 'none', 'important');
+                  target.style.setProperty('margin', '0', 'important');
+                  target.style.setProperty('padding', '0', 'important');
+                  var crossOrigin = false;
                   try {
                     var iframeDoc = target.contentDocument || target.contentWindow.document;
                     if (iframeDoc) {
@@ -159,11 +172,16 @@ const WebViewScreen = ({ route, navigation }) => {
                       if (!pipCss) {
                         pipCss = iframeDoc.createElement('style');
                         pipCss.id = 'pip-iframe-style';
-                        pipCss.textContent = 'html,body{margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important}video{width:100%!important;height:100%!important;object-fit:contain!important}';
+                        pipCss.textContent = 'html,body{margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;width:100%!important;height:100%!important}video{width:100%!important;height:100%!important;object-fit:contain!important}';
                         iframeDoc.head.appendChild(pipCss);
                       }
                     }
-                  } catch(e) {}
+                  } catch(e) { crossOrigin = true; }
+                  if (crossOrigin) {
+                    try {
+                      target.contentWindow.postMessage(JSON.stringify({event:'openhonk_pip',action:'resize'}), '*');
+                    } catch(e2) {}
+                  }
                 }
               }
             }
@@ -203,6 +221,18 @@ const WebViewScreen = ({ route, navigation }) => {
             var iframes = document.querySelectorAll('iframe');
             for (var i = 0; i < iframes.length; i++) {
               try {
+                iframes[i].style.removeProperty('width');
+                iframes[i].style.removeProperty('height');
+                iframes[i].style.removeProperty('position');
+                iframes[i].style.removeProperty('top');
+                iframes[i].style.removeProperty('left');
+                iframes[i].style.removeProperty('z-index');
+                iframes[i].style.removeProperty('background');
+                iframes[i].style.removeProperty('border');
+                iframes[i].style.removeProperty('margin');
+                iframes[i].style.removeProperty('padding');
+                iframes[i].removeAttribute('width');
+                iframes[i].removeAttribute('height');
                 var iframeDoc = iframes[i].contentDocument || iframes[i].contentWindow.document;
                 if (iframeDoc) {
                   var pipStyle = iframeDoc.getElementById('pip-iframe-style');
@@ -803,6 +833,23 @@ const WebViewScreen = ({ route, navigation }) => {
               meta.content = 'width=768, initial-scale=0.6, maximum-scale=1, user-scalable=yes';
               document.head.appendChild(meta);
             }
+            // YouTube compatibility: mock window.chrome so YouTube player doesn't show black screen
+            if (window.location.hostname.indexOf('youtube.com') !== -1 || window.location.hostname.indexOf('youtube-nocookie.com') !== -1) {
+              if (!window.chrome) {
+                window.chrome = {};
+              }
+              if (!window.chrome.runtime) {
+                window.chrome.runtime = function() {};
+              }
+              // Redirect YouTube watch URLs to embed format for better WebView compatibility
+              if (window.location.href.indexOf('youtube.com/watch') !== -1) {
+                var vidMatch = window.location.href.match(/[?&]v=([^&]+)/);
+                if (vidMatch) {
+                  var embedUrl = 'https://www.youtube.com/embed/' + vidMatch[1] + '?autoplay=1&playsinline=1';
+                  window.location.href = embedUrl;
+                }
+              }
+            }
             // Video detection for PiP button - only enable when a video is actively playing with audio
             function isVisible(el) {
               var rect = el.getBoundingClientRect();
@@ -1321,6 +1368,7 @@ const WebViewScreen = ({ route, navigation }) => {
                         return null;
                       }
                       function applyPip() {
+                        if (!window.__openhonk_in_pip) return;
                         var target = findPipTarget();
                         if (!target) {
                           var videos = document.querySelectorAll('video');
@@ -1348,6 +1396,19 @@ const WebViewScreen = ({ route, navigation }) => {
                           }
                           if (target.tagName === 'VIDEO') target.play().catch(function() {});
                           if (target.tagName === 'IFRAME') {
+                            target.setAttribute('width', '100%');
+                            target.setAttribute('height', '100%');
+                            target.style.setProperty('width', '100%', 'important');
+                            target.style.setProperty('height', '100%', 'important');
+                            target.style.setProperty('position', 'fixed', 'important');
+                            target.style.setProperty('top', '0', 'important');
+                            target.style.setProperty('left', '0', 'important');
+                            target.style.setProperty('z-index', '999999', 'important');
+                            target.style.setProperty('background', '#000', 'important');
+                            target.style.setProperty('border', 'none', 'important');
+                            target.style.setProperty('margin', '0', 'important');
+                            target.style.setProperty('padding', '0', 'important');
+                            var crossOrigin = false;
                             try {
                               var iframeDoc = target.contentDocument || target.contentWindow.document;
                               if (iframeDoc) {
@@ -1355,14 +1416,20 @@ const WebViewScreen = ({ route, navigation }) => {
                                 if (!pipCss) {
                                   pipCss = iframeDoc.createElement('style');
                                   pipCss.id = 'pip-iframe-style';
-                                  pipCss.textContent = 'html,body{margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important}video{width:100%!important;height:100%!important;object-fit:contain!important}';
+                                  pipCss.textContent = 'html,body{margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;width:100%!important;height:100%!important}video{width:100%!important;height:100%!important;object-fit:contain!important}';
                                   iframeDoc.head.appendChild(pipCss);
                                 }
                               }
-                            } catch(e) {}
+                            } catch(e) { crossOrigin = true; }
+                            if (crossOrigin) {
+                              try {
+                                target.contentWindow.postMessage(JSON.stringify({event:'openhonk_pip',action:'resize'}), '*');
+                              } catch(e2) {}
+                            }
                           }
                         }
                       }
+                      window.__openhonk_in_pip = true;
                       applyPip();
                       window.__pipScrollY = window.scrollY;
                       window.__pipApplyFn = applyPip;

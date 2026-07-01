@@ -242,11 +242,11 @@ const CategoryScreen = ({ route, navigation }) => {
             };
           } catch (e) {}
         }
-        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || []).slice().reverse()]
+        const allNotifs = [adblockEntry, bookmarkEntry, ...(category.urls || []).slice().reverse().map(n => ({ ...n, isStatic: true }))]
           .filter(n => n && !dismissed.includes(n.id))
           .map(n => ({
             ...n,
-            isNew: !viewed[n.id] || (n.date && new Date(viewed[n.id]) < new Date(n.date)),
+            isNew: !viewed[n.id] || (!n.isStatic && n.date && new Date(viewed[n.id]) < new Date(n.date)),
           }));
         setNotifUrls(allNotifs);
 
