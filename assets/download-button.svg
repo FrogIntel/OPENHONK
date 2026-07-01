@@ -14,6 +14,6 @@
   </defs>
   <a href="https://github.com/FrogIntel/OPENHONK/releases/latest">
     <rect width="220" height="50" rx="12" fill="url(#bg)" filter="url(#glow)"/>
-    <text x="110" y="32" text-anchor="middle" font-family="Segoe UI,Verdana,sans-serif" font-size="18" font-weight="bold" fill="#000">🐸 DOWNLOAD v1.0.14</text>
+    <text x="110" y="32" text-anchor="middle" font-family="Segoe UI,Verdana,sans-serif" font-size="18" font-weight="bold" fill="#000">⬇ DOWNLOAD v1.0.14</text>
   </a>
 </svg>
