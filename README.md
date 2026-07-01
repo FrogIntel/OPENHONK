@@ -8,6 +8,8 @@
 
 <a href="https://github.com/FrogIntel/OPENHONK/releases/latest"><img src="assets/download-button.svg" width="220" alt="Download Latest" /></a>
 
+[![Profile Views](https://komarev.com/ghpvc/?username=FrogIntel&style=for-the-badge&color=000000&label=VIEWS&labelColor=ffcc33)](https://github.com/FrogIntel)
+
 </div>
 
 ---
